@@ -1,116 +1,482 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AUD FX Dashboard (AUDUSD / AUDEUR)</title>
-  <style>
-    :root { --gap: 12px; }
-    html, body { height: 100%; margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", sans-serif; }
-    .wrap { height: 100%; display: grid; grid-template-rows: 120px 1fr; gap: var(--gap); padding: var(--gap); box-sizing: border-box; }
-    .row { display: grid; grid-template-columns: 1fr; gap: var(--gap); min-height: 0; }
-    @media (min-width: 1100px) {
-      .row { grid-template-columns: 1fr 1fr; }
-    }
-    .card { border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; background: #fff; min-height: 0; }
-    .card h2 { margin: 0; padding: 10px 12px; font-size: 14px; border-bottom: 1px solid #e5e7eb; background: #fafafa; }
-    .tv { height: calc(100% - 41px); }
-    .top { height: 120px; }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global FX Dashboard | Hansol Paper Export Exchange Rate Intelligence</title>
+  <meta name="description" content="Real-time and historical foreign exchange rates dashboard for paper export market analysis." />
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Chart.js and Date Adapter via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 </head>
-
 <body>
-  <div class="wrap">
 
-    <!-- 상단: 두 페어를 “가격 보드”로 한눈에 -->
-    <div class="card top">
-      <h2>Live Quotes (AUDUSD / AUDEUR)</h2>
-      <div class="tv">
-        <!-- TradingView Widget BEGIN -->
-        <div class="tradingview-widget-container" style="height:100%;width:100%">
-          <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
-          {
-            "width": "100%",
-            "height": "100%",
-            "locale": "en",
-            "showSymbolLogo": true,
-            "colorTheme": "light",
-            "symbolsGroups": [
-              {
-                "name": "AUD Pairs",
-                "symbols": [
-                  { "name": "FX_IDC:AUDUSD", "displayName": "AUD / USD" },
-                  { "name": "FX_IDC:AUDEUR", "displayName": "AUD / EUR" }
-                ]
-              }
-            ]
-          }
-          </script>
+  <!-- Top Navigation Header -->
+  <header class="header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">FX</div>
+        <div class="brand-text">
+          <h1>Export FX Intelligence Dashboard</h1>
+          <p>Hansol Paper Global Export Rate & Competitor Currency Monitor</p>
         </div>
-        <!-- TradingView Widget END -->
       </div>
+      <nav class="nav-tabs" id="main-nav">
+        <button class="tab-btn active" data-tab="overview">Overview</button>
+        <button class="tab-btn" data-tab="aud">AUD (호주)</button>
+        <button class="tab-btn" data-tab="inr">INR (인도)</button>
+        <button class="tab-btn" data-tab="jpy">JPY (일본)</button>
+        <button class="tab-btn" data-tab="eur">EUR (유럽)</button>
+        <button class="tab-btn" data-tab="gbp">GBP (영국)</button>
+        <button class="tab-btn" data-tab="rub">RUB (러시아)</button>
+      </nav>
     </div>
+  </header>
 
-    <!-- 하단: 2개 차트를 나란히 -->
-    <div class="row">
+  <!-- Main Content Body -->
+  <main class="main-container">
 
-      <div class="card">
-        <h2>Chart: AUDUSD</h2>
-        <div class="tv">
-          <!-- TradingView Widget BEGIN -->
-          <div class="tradingview-widget-container" style="height:100%;width:100%">
-            <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-            {
-              "autosize": true,
-              "symbol": "FX_IDC:AUDUSD",
-              "interval": "60",
-              "timezone": "Asia/Seoul",
-              "theme": "light",
-              "style": "1",
-              "locale": "kr",
-              "withdateranges": true,
-              "allow_symbol_change": false,
-              "details": true,
-              "calendar": false,
-              "support_host": "https://www.tradingview.com"
-            }
-            </script>
-          </div>
-          <!-- TradingView Widget END -->
+    <!-- ==================== OVERVIEW TAB ==================== -->
+    <section id="panel-overview" class="tab-panel">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Global Currency Overview</h2>
+          <p class="panel-subtitle">Key export market exchange rates against USD (Base Currency)</p>
+        </div>
+        <div class="panel-actions">
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Data source: Frankfurter API (ECB Reference Rates)</span>
         </div>
       </div>
 
-      <div class="card">
-        <h2>Chart: AUDEUR</h2>
-        <div class="tv">
-          <!-- TradingView Widget BEGIN -->
-          <div class="tradingview-widget-container" style="height:100%;width:100%">
-            <div class="tradingview-widget-container__widget" style="height:100%;width:100%"></div>
-            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-            {
-              "autosize": true,
-              "symbol": "FX_IDC:AUDEUR",
-              "interval": "60",
-              "timezone": "Asia/Seoul",
-              "theme": "light",
-              "style": "1",
-              "locale": "kr",
-              "withdateranges": true,
-              "allow_symbol_change": false,
-              "details": true,
-              "calendar": false,
-              "support_host": "https://www.tradingview.com"
-            }
-            </script>
+      <div class="overview-grid">
+        <!-- AUD Card -->
+        <article class="card">
+          <div class="card-header">
+            <div class="card-currency-info">
+              <h3>AUD / 호주 달러</h3>
+              <span>1 USD = AUD</span>
+            </div>
+            <span class="metric-pill positive">+2.1% 1M</span>
           </div>
-          <!-- TradingView Widget END -->
+          <div class="rate-badge" id="overview-rate-aud">--.--</div>
+          <div class="sparkline-container" id="sparkline-aud">
+            <span>Sparkline Chart Placeholder</span>
+          </div>
+          <div class="card-metrics">
+            <span class="metric-pill positive">1M: +2.1%</span>
+            <span class="metric-pill negative">3M: -0.5%</span>
+            <span class="metric-pill positive">1Y: +4.3%</span>
+          </div>
+        </article>
+
+        <!-- INR Card -->
+        <article class="card">
+          <div class="card-header">
+            <div class="card-currency-info">
+              <h3>INR / 인도 루피</h3>
+              <span>1 USD = INR</span>
+            </div>
+            <span class="metric-pill positive">+0.8% 1M</span>
+          </div>
+          <div class="rate-badge" id="overview-rate-inr">--.--</div>
+          <div class="sparkline-container" id="sparkline-inr">
+            <span>Sparkline Chart Placeholder</span>
+          </div>
+          <div class="card-metrics">
+            <span class="metric-pill positive">1M: +0.8%</span>
+            <span class="metric-pill positive">3M: +1.2%</span>
+            <span class="metric-pill positive">1Y: +3.1%</span>
+          </div>
+        </article>
+
+        <!-- JPY Card -->
+        <article class="card">
+          <div class="card-header">
+            <div class="card-currency-info">
+              <h3>JPY / 일본 엔</h3>
+              <span>1 USD = JPY</span>
+            </div>
+            <span class="metric-pill negative">-1.4% 1M</span>
+          </div>
+          <div class="rate-badge" id="overview-rate-jpy">---.--</div>
+          <div class="sparkline-container" id="sparkline-jpy">
+            <span>Sparkline Chart Placeholder</span>
+          </div>
+          <div class="card-metrics">
+            <span class="metric-pill negative">1M: -1.4%</span>
+            <span class="metric-pill negative">3M: -2.8%</span>
+            <span class="metric-pill positive">1Y: +5.6%</span>
+          </div>
+        </article>
+
+        <!-- EUR Card -->
+        <article class="card">
+          <div class="card-header">
+            <div class="card-currency-info">
+              <h3>EUR / 유로</h3>
+              <span>1 USD = EUR</span>
+            </div>
+            <span class="metric-pill positive">+0.3% 1M</span>
+          </div>
+          <div class="rate-badge" id="overview-rate-eur">-.----</div>
+          <div class="sparkline-container" id="sparkline-eur">
+            <span>Sparkline Chart Placeholder</span>
+          </div>
+          <div class="card-metrics">
+            <span class="metric-pill positive">1M: +0.3%</span>
+            <span class="metric-pill positive">3M: +0.7%</span>
+            <span class="metric-pill negative">1Y: -1.2%</span>
+          </div>
+        </article>
+
+        <!-- GBP Card -->
+        <article class="card">
+          <div class="card-header">
+            <div class="card-currency-info">
+              <h3>GBP / 파운드</h3>
+              <span>1 USD = GBP</span>
+            </div>
+            <span class="metric-pill positive">+0.5% 1M</span>
+          </div>
+          <div class="rate-badge" id="overview-rate-gbp">-.----</div>
+          <div class="sparkline-container" id="sparkline-gbp">
+            <span>Sparkline Chart Placeholder</span>
+          </div>
+          <div class="card-metrics">
+            <span class="metric-pill positive">1M: +0.5%</span>
+            <span class="metric-pill positive">3M: +1.1%</span>
+            <span class="metric-pill positive">1Y: +2.0%</span>
+          </div>
+        </article>
+
+        <!-- RUB Card -->
+        <article class="card">
+          <div class="card-header">
+            <div class="card-currency-info">
+              <h3>RUB / 루블 (Historical)</h3>
+              <span>1 USD = RUB</span>
+            </div>
+            <span class="metric-pill" style="background:#e2e8f0; color:#475569;">Frozen 2022</span>
+          </div>
+          <div class="rate-badge" id="overview-rate-rub">105.00</div>
+          <div class="sparkline-container" id="sparkline-rub">
+            <span>Historical Data (Up to Mar 2022)</span>
+          </div>
+          <div class="card-metrics">
+            <span class="metric-pill" style="background:#f1f5f9; color:#64748b;">ECB Rate Suspended</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ==================== AUD TAB ==================== -->
+    <section id="panel-aud" class="tab-panel panel-hidden">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">AUD (Australian Dollar) Analysis</h2>
+          <p class="panel-subtitle">USD/AUD Exchange Rate Trend & Monthly Averages</p>
+        </div>
+        <div class="time-scale-group" data-currency="AUD">
+          <button class="time-btn" data-scale="6M">6M</button>
+          <button class="time-btn active" data-scale="1Y">1Y</button>
+          <button class="time-btn" data-scale="2Y">2Y</button>
+          <button class="time-btn" data-scale="3Y">3Y</button>
+          <button class="time-btn" data-scale="5Y">5Y</button>
+          <button class="time-btn" data-scale="MAX">Max</button>
         </div>
       </div>
 
-    </div>
-  </div>
+      <!-- Main Chart Card -->
+      <div class="card chart-card">
+        <div class="chart-wrapper">
+          <div class="chart-placeholder" id="chart-aud-placeholder">
+            📈 USD/AUD Main Line Chart Container (Chart.js step 3 integration)
+          </div>
+        </div>
+      </div>
+
+      <!-- Competitor Comparison Section -->
+      <div class="panel-header" style="margin-top: 2rem;">
+        <div>
+          <h3 class="panel-title" style="font-size: 1.2rem;">Competitor Rate Comparison (Peter USD vs German EUR)</h3>
+          <p class="panel-subtitle">USD/AUD (Hansol Billing Rate) vs EUR/AUD (German Competitor Rate Overlay)</p>
+        </div>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-wrapper">
+          <div class="chart-placeholder" id="chart-aud-comp-placeholder">
+            📊 USD/AUD vs EUR/AUD Dual Axis Overlay Chart Placeholder
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Average Table Section -->
+      <div class="panel-header" style="margin-top: 2rem;">
+        <h3 class="panel-title" style="font-size: 1.2rem;">Monthly Average Rates (Year × Month Grid)</h3>
+      </div>
+      <div class="card table-card">
+        <div class="table-responsive">
+          <table class="monthly-table">
+            <thead>
+              <tr>
+                <th>Year</th>
+                <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+                <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
+                <th class="avg-col">Annual Avg</th>
+              </tr>
+            </thead>
+            <tbody id="table-aud-body">
+              <tr>
+                <td>2026</td>
+                <td class="cell-favorable">1.5210</td><td class="cell-favorable">1.5302</td><td>--</td><td>--</td><td>--</td><td>--</td>
+                <td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td>
+                <td class="avg-col">1.5256</td>
+              </tr>
+              <tr>
+                <td>2025</td>
+                <td>1.4820</td><td>1.4910</td><td class="cell-unfavorable">1.4705</td><td class="cell-favorable">1.5012</td><td>1.4980</td><td>1.5120</td>
+                <td>1.5050</td><td>1.5180</td><td>1.5210</td><td>1.5190</td><td>1.5230</td><td>1.5280</td>
+                <td class="avg-col">1.5057</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== INR TAB ==================== -->
+    <section id="panel-inr" class="tab-panel panel-hidden">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">INR (Indian Rupee) Analysis</h2>
+          <p class="panel-subtitle">USD/INR Exchange Rate Trend & Monthly Averages</p>
+        </div>
+        <div class="time-scale-group" data-currency="INR">
+          <button class="time-btn" data-scale="6M">6M</button>
+          <button class="time-btn active" data-scale="1Y">1Y</button>
+          <button class="time-btn" data-scale="2Y">2Y</button>
+          <button class="time-btn" data-scale="3Y">3Y</button>
+          <button class="time-btn" data-scale="5Y">5Y</button>
+          <button class="time-btn" data-scale="MAX">Max</button>
+        </div>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-wrapper">
+          <div class="chart-placeholder">📈 USD/INR Chart Container</div>
+        </div>
+      </div>
+      <div class="panel-header" style="margin-top: 2rem;">
+        <h3 class="panel-title" style="font-size: 1.2rem;">Monthly Average Rates</h3>
+      </div>
+      <div class="card table-card">
+        <div class="table-responsive">
+          <table class="monthly-table">
+            <thead>
+              <tr>
+                <th>Year</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+                <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th class="avg-col">Annual Avg</th>
+              </tr>
+            </thead>
+            <tbody id="table-inr-body">
+              <tr><td>2026</td><td>83.20</td><td>83.45</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td class="avg-col">83.33</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== JPY TAB ==================== -->
+    <section id="panel-jpy" class="tab-panel panel-hidden">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">JPY (Japanese Yen) Analysis</h2>
+          <p class="panel-subtitle">USD/JPY Exchange Rate Trend & Monthly Averages</p>
+        </div>
+        <div class="time-scale-group" data-currency="JPY">
+          <button class="time-btn" data-scale="6M">6M</button>
+          <button class="time-btn active" data-scale="1Y">1Y</button>
+          <button class="time-btn" data-scale="2Y">2Y</button>
+          <button class="time-btn" data-scale="3Y">3Y</button>
+          <button class="time-btn" data-scale="5Y">5Y</button>
+          <button class="time-btn" data-scale="MAX">Max</button>
+        </div>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-wrapper">
+          <div class="chart-placeholder">📈 USD/JPY Chart Container</div>
+        </div>
+      </div>
+      <div class="panel-header" style="margin-top: 2rem;">
+        <h3 class="panel-title" style="font-size: 1.2rem;">Monthly Average Rates</h3>
+      </div>
+      <div class="card table-card">
+        <div class="table-responsive">
+          <table class="monthly-table">
+            <thead>
+              <tr>
+                <th>Year</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+                <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th class="avg-col">Annual Avg</th>
+              </tr>
+            </thead>
+            <tbody id="table-jpy-body">
+              <tr><td>2026</td><td>154.20</td><td>155.10</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td class="avg-col">154.65</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== EUR TAB ==================== -->
+    <section id="panel-eur" class="tab-panel panel-hidden">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">EUR (Euro) Analysis</h2>
+          <p class="panel-subtitle">USD/EUR Exchange Rate Trend & Monthly Averages</p>
+        </div>
+        <div class="time-scale-group" data-currency="EUR">
+          <button class="time-btn" data-scale="6M">6M</button>
+          <button class="time-btn active" data-scale="1Y">1Y</button>
+          <button class="time-btn" data-scale="2Y">2Y</button>
+          <button class="time-btn" data-scale="3Y">3Y</button>
+          <button class="time-btn" data-scale="5Y">5Y</button>
+          <button class="time-btn" data-scale="MAX">Max</button>
+        </div>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-wrapper">
+          <div class="chart-placeholder">📈 USD/EUR Chart Container</div>
+        </div>
+      </div>
+      <div class="panel-header" style="margin-top: 2rem;">
+        <h3 class="panel-title" style="font-size: 1.2rem;">Monthly Average Rates</h3>
+      </div>
+      <div class="card table-card">
+        <div class="table-responsive">
+          <table class="monthly-table">
+            <thead>
+              <tr>
+                <th>Year</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+                <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th class="avg-col">Annual Avg</th>
+              </tr>
+            </thead>
+            <tbody id="table-eur-body">
+              <tr><td>2026</td><td>0.9150</td><td>0.9180</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td class="avg-col">0.9165</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== GBP TAB ==================== -->
+    <section id="panel-gbp" class="tab-panel panel-hidden">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">GBP (British Pound) Analysis</h2>
+          <p class="panel-subtitle">USD/GBP Exchange Rate Trend & Monthly Averages</p>
+        </div>
+        <div class="time-scale-group" data-currency="GBP">
+          <button class="time-btn" data-scale="6M">6M</button>
+          <button class="time-btn active" data-scale="1Y">1Y</button>
+          <button class="time-btn" data-scale="2Y">2Y</button>
+          <button class="time-btn" data-scale="3Y">3Y</button>
+          <button class="time-btn" data-scale="5Y">5Y</button>
+          <button class="time-btn" data-scale="MAX">Max</button>
+        </div>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-wrapper">
+          <div class="chart-placeholder">📈 USD/GBP Chart Container</div>
+        </div>
+      </div>
+      <div class="panel-header" style="margin-top: 2rem;">
+        <h3 class="panel-title" style="font-size: 1.2rem;">Monthly Average Rates</h3>
+      </div>
+      <div class="card table-card">
+        <div class="table-responsive">
+          <table class="monthly-table">
+            <thead>
+              <tr>
+                <th>Year</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+                <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th class="avg-col">Annual Avg</th>
+              </tr>
+            </thead>
+            <tbody id="table-gbp-body">
+              <tr><td>2026</td><td>0.7850</td><td>0.7890</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td class="avg-col">0.7870</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== RUB TAB ==================== -->
+    <section id="panel-rub" class="tab-panel panel-hidden">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">RUB (Russian Ruble) Historical Data</h2>
+          <p class="panel-subtitle">USD/RUB Historical Rates (Frozen March 2022)</p>
+        </div>
+        <div class="time-scale-group" data-currency="RUB">
+          <button class="time-btn active" data-scale="MAX">Historical Max (1999-2022)</button>
+        </div>
+      </div>
+
+      <!-- Warning Banner -->
+      <div class="warning-banner">
+        <span class="warning-icon">⚠️</span>
+        <div>
+          <strong>ECB Data Suspension Notice:</strong> The European Central Bank (ECB) suspended the publication of reference rates for the Russian Ruble (RUB) after March 1, 2022 due to market conditions. Historical data up to March 2022 is preserved below.
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="chart-wrapper">
+          <div class="chart-placeholder">📈 USD/RUB Historical Chart Container</div>
+        </div>
+      </div>
+      <div class="panel-header" style="margin-top: 2rem;">
+        <h3 class="panel-title" style="font-size: 1.2rem;">Historical Monthly Average Rates (Up to March 2022)</h3>
+      </div>
+      <div class="card table-card">
+        <div class="table-responsive">
+          <table class="monthly-table">
+            <thead>
+              <tr>
+                <th>Year</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+                <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th class="avg-col">Annual Avg</th>
+              </tr>
+            </thead>
+            <tbody id="table-rub-body">
+              <tr>
+                <td>2022</td>
+                <td>76.85</td><td>77.20</td><td>105.00</td>
+                <td style="color:#94a3b8">N/A</td><td style="color:#94a3b8">N/A</td><td style="color:#94a3b8">N/A</td>
+                <td style="color:#94a3b8">N/A</td><td style="color:#94a3b8">N/A</td><td style="color:#94a3b8">N/A</td>
+                <td style="color:#94a3b8">N/A</td><td style="color:#94a3b8">N/A</td><td style="color:#94a3b8">N/A</td>
+                <td class="avg-col">86.35</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>FX Export Intelligence &copy; 2026 Hansol Paper Overseas Sales. Data provided by <a href="https://api.frankfurter.dev" target="_blank" rel="noopener">Frankfurter API</a>.</p>
+  </footer>
+
+  <!-- App Script -->
+  <script src="app.js"></script>
 </body>
 </html>
-
