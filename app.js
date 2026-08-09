@@ -1,6 +1,6 @@
 /**
  * FX Dashboard - Main Application Engine & Data Layer
- * Step 4: Full Dynamic Monthly Average Tables (Year x Month Grid) with YoY Color Coding & Time Scale Integration
+ * Step 5: Overview Tab Live Metrics, Dynamic Period Badges (1M/3M/1Y), Refresh Button & Final Polish
  */
 
 // Global App Configuration
@@ -43,10 +43,12 @@ const ChartManager = {
  */
 const FXDataService = {
 
-  async fetchLatestRates() {
+  async fetchLatestRates(forceRefresh = false) {
     const cacheKey = `${CONFIG.CACHE_PREFIX}latest`;
-    const cached = this.getCache(cacheKey, CONFIG.TTL.RECENT);
-    if (cached) return cached;
+    if (!forceRefresh) {
+      const cached = this.getCache(cacheKey, CONFIG.TTL.RECENT);
+      if (cached) return cached;
+    }
 
     try {
       const res = await fetch(`${CONFIG.FRANKFURTER_BASE}/latest?from=USD&to=AUD,INR,JPY,EUR,GBP`);
@@ -186,6 +188,33 @@ const FXDataService = {
     });
   },
 
+  calculateChangePct(dailyRates, periodDays) {
+    const dates = Object.keys(dailyRates).sort();
+    if (dates.length < 2) return 0;
+
+    const latestDate = dates[dates.length - 1];
+    const latestRate = dailyRates[latestDate];
+
+    const targetTime = new Date(latestDate).getTime() - (periodDays * 24 * 60 * 60 * 1000);
+    
+    let closestDate = dates[0];
+    let minDiff = Math.abs(new Date(dates[0]).getTime() - targetTime);
+
+    for (let i = 1; i < dates.length; i++) {
+      const diff = Math.abs(new Date(dates[i]).getTime() - targetTime);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestDate = dates[i];
+      }
+    }
+
+    const pastRate = dailyRates[closestDate];
+    if (!pastRate || pastRate === 0) return 0;
+
+    const pct = ((latestRate - pastRate) / pastRate) * 100;
+    return parseFloat(pct.toFixed(2));
+  },
+
   getStartDateForScale(scaleStr) {
     const now = new Date();
     switch (scaleStr) {
@@ -229,13 +258,25 @@ document.addEventListener('DOMContentLoaded', () => {
   initTabNavigation();
   initTimeScaleButtons();
   loadOverviewData();
+
+  // Refresh Button Handler
+  const refreshBtn = document.getElementById('btn-refresh-data');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', async () => {
+      refreshBtn.disabled = true;
+      refreshBtn.textContent = 'Refreshing...';
+      await loadOverviewData(true);
+      refreshBtn.textContent = '🔄 Refresh Data';
+      refreshBtn.disabled = false;
+    });
+  }
 });
 
 /**
- * Load Overview Cards + Mini Sparkline Charts
+ * Load Overview Cards + Dynamic Change Badges & Sparklines
  */
-async function loadOverviewData() {
-  const data = await FXDataService.fetchLatestRates();
+async function loadOverviewData(forceRefresh = false) {
+  const data = await FXDataService.fetchLatestRates(forceRefresh);
   if (!data || !data.rates) return;
 
   const rates = data.rates;
@@ -254,7 +295,15 @@ async function loadOverviewData() {
     }
   }
 
-  renderOverviewSparklines();
+  // Update Last Updated Timestamp
+  const lastUpdatedEl = document.getElementById('last-updated-time');
+  if (lastUpdatedEl) {
+    const d = new Date(data.timestamp || Date.now());
+    lastUpdatedEl.textContent = `Last updated: ${d.toLocaleTimeString()} (${data.date || 'Live'})`;
+  }
+
+  // Render Mini Sparkline Charts & Dynamic Change Badges
+  renderOverviewSparklinesAndBadges();
 }
 
 function updateOverviewCard(currency, rate) {
@@ -265,21 +314,18 @@ function updateOverviewCard(currency, rate) {
 }
 
 /**
- * Render Mini Sparklines in Overview Cards
+ * Render Mini Sparklines & Dynamic Period Change % Badges (1M, 3M, 1Y)
  */
-async function renderOverviewSparklines() {
-  const startDate = FXDataService.getStartDateForScale('6M');
+async function renderOverviewSparklinesAndBadges() {
+  const startDate = FXDataService.getStartDateForScale('1Y');
   const endDate = new Date().toISOString().split('T')[0];
 
   const currencies = ['AUD', 'INR', 'JPY', 'EUR', 'GBP'];
 
   currencies.forEach(async (curr) => {
-    const container = document.getElementById(`sparkline-${curr.toLowerCase()}`);
-    if (!container) return;
-
-    container.innerHTML = `<canvas id="canvas-spark-${curr.toLowerCase()}"></canvas>`;
-    const canvas = document.getElementById(`canvas-spark-${curr.toLowerCase()}`);
-
+    const currLower = curr.toLowerCase();
+    const container = document.getElementById(`sparkline-${currLower}`);
+    
     const histData = await FXDataService.fetchHistoricalSeries(curr, startDate, endDate);
     const daily = histData.dailyRates || {};
     const labels = Object.keys(daily).sort();
@@ -287,31 +333,61 @@ async function renderOverviewSparklines() {
 
     if (values.length === 0) return;
 
-    const firstVal = values[0];
-    const lastVal = values[values.length - 1];
-    const isUp = lastVal >= firstVal;
+    // Calculate 1M, 3M, 1Y Change %
+    const change1M = FXDataService.calculateChangePct(daily, 30);
+    const change3M = FXDataService.calculateChangePct(daily, 90);
+    const change1Y = FXDataService.calculateChangePct(daily, 365);
 
-    const ctx = canvas.getContext('2d');
-    ChartManager.register(`canvas-spark-${curr.toLowerCase()}`, new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          data: values,
-          borderColor: isUp ? '#16a34a' : '#dc2626',
-          borderWidth: 2,
-          pointRadius: 0,
-          fill: false,
-          tension: 0.2
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { enabled: false } },
-        scales: { x: { display: false }, y: { display: false } }
-      }
-    }));
+    // Update Card Header Badge (1M)
+    const headerBadge = document.getElementById(`badge-1m-${currLower}`);
+    if (headerBadge) {
+      const isPos = change1M >= 0;
+      headerBadge.textContent = `${isPos ? '+' : ''}${change1M}% 1M`;
+      headerBadge.className = `metric-pill ${isPos ? 'positive' : 'negative'}`;
+    }
+
+    // Update Card Footer Metrics
+    const metricsContainer = document.getElementById(`metrics-${currLower}`);
+    if (metricsContainer) {
+      metricsContainer.innerHTML = `
+        <span class="metric-pill ${change1M >= 0 ? 'positive' : 'negative'}">1M: ${change1M >= 0 ? '+' : ''}${change1M}%</span>
+        <span class="metric-pill ${change3M >= 0 ? 'positive' : 'negative'}">3M: ${change3M >= 0 ? '+' : ''}${change3M}%</span>
+        <span class="metric-pill ${change1Y >= 0 ? 'positive' : 'negative'}">1Y: ${change1Y >= 0 ? '+' : ''}${change1Y}%</span>
+      `;
+    }
+
+    // Sparkline Canvas
+    if (container) {
+      container.innerHTML = `<canvas id="canvas-spark-${currLower}"></canvas>`;
+      const canvas = document.getElementById(`canvas-spark-${currLower}`);
+      if (!canvas) return;
+
+      const firstVal = values[0];
+      const lastVal = values[values.length - 1];
+      const isUp = lastVal >= firstVal;
+
+      const ctx = canvas.getContext('2d');
+      ChartManager.register(`canvas-spark-${currLower}`, new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            borderColor: isUp ? '#16a34a' : '#dc2626',
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false,
+            tension: 0.2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          scales: { x: { display: false }, y: { display: false } }
+        }
+      }));
+    }
   });
 }
 
@@ -388,7 +464,6 @@ async function renderCurrencyTabChart(currency, scale = '1Y') {
     }
   }));
 
-  // Also render monthly average table
   renderMonthlyAverageTable(currency, scale);
 }
 
@@ -493,7 +568,6 @@ async function renderMonthlyAverageTable(currency, scale = '3Y') {
     return;
   }
 
-  // Create a map for quick Year-Month lookup: { "2026-01": avgVal }
   const ymMap = {};
   yearlyData.forEach(yrObj => {
     Object.entries(yrObj.months).forEach(([month, avg]) => {
@@ -520,7 +594,6 @@ async function renderMonthlyAverageTable(currency, scale = '3Y') {
         let cellClass = '';
 
         if (prevAvg !== undefined && prevAvg !== null) {
-          // If current rate > previous year same month rate -> Currency weakened vs USD (favorable for paper buyer)
           if (currentAvg > prevAvg) {
             cellClass = 'cell-favorable';
           } else if (currentAvg < prevAvg) {
@@ -528,14 +601,12 @@ async function renderMonthlyAverageTable(currency, scale = '3Y') {
           }
         }
 
-        rowCells += `<td class="${cellClass}" title="${year}-${m} Avg: ${currentAvg.toFixed( precision + 2 )}">${currentAvg.toFixed(precision)}</td>`;
+        rowCells += `<td class="${cellClass}" title="${year}-${m} Avg: ${currentAvg.toFixed(precision + 2)}">${currentAvg.toFixed(precision)}</td>`;
       } else {
-        // N/A cell for missing or future months
         rowCells += `<td style="color:#94a3b8;">--</td>`;
       }
     });
 
-    // Annual Avg Column
     const annualStr = yrObj.annualAvg ? yrObj.annualAvg.toFixed(precision) : '--';
     rowCells += `<td class="avg-col">${annualStr}</td>`;
 

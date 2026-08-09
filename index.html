@@ -50,10 +50,11 @@
       <div class="panel-header">
         <div>
           <h2 class="panel-title">Global Currency Overview</h2>
-          <p class="panel-subtitle">Key export market exchange rates against USD (Base Currency)</p>
+          <p class="panel-subtitle" id="last-updated-time">Key export market exchange rates against USD (Base Currency)</p>
         </div>
-        <div class="panel-actions">
-          <span style="font-size: 0.8rem; color: var(--text-muted);">Data source: Frankfurter API (ECB Reference Rates)</span>
+        <div class="panel-actions" style="display: flex; gap: 0.75rem; align-items: center;">
+          <button id="btn-refresh-data" class="tab-btn" style="background: var(--accent); color: white;">🔄 Refresh Data</button>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Data: Frankfurter API + Open ER-API (Live RUB)</span>
         </div>
       </div>
 
@@ -65,16 +66,16 @@
               <h3>AUD / 호주 달러</h3>
               <span>1 USD = AUD</span>
             </div>
-            <span class="metric-pill positive">+2.1% 1M</span>
+            <span class="metric-pill positive" id="badge-1m-aud">--% 1M</span>
           </div>
           <div class="rate-badge" id="overview-rate-aud">--.--</div>
           <div class="sparkline-container" id="sparkline-aud">
-            <span>Sparkline Chart Placeholder</span>
+            <span>Loading chart...</span>
           </div>
-          <div class="card-metrics">
-            <span class="metric-pill positive">1M: +2.1%</span>
-            <span class="metric-pill negative">3M: -0.5%</span>
-            <span class="metric-pill positive">1Y: +4.3%</span>
+          <div class="card-metrics" id="metrics-aud">
+            <span class="metric-pill">1M: --</span>
+            <span class="metric-pill">3M: --</span>
+            <span class="metric-pill">1Y: --</span>
           </div>
         </article>
 
@@ -85,16 +86,16 @@
               <h3>INR / 인도 루피</h3>
               <span>1 USD = INR</span>
             </div>
-            <span class="metric-pill positive">+0.8% 1M</span>
+            <span class="metric-pill positive" id="badge-1m-inr">--% 1M</span>
           </div>
           <div class="rate-badge" id="overview-rate-inr">--.--</div>
           <div class="sparkline-container" id="sparkline-inr">
-            <span>Sparkline Chart Placeholder</span>
+            <span>Loading chart...</span>
           </div>
-          <div class="card-metrics">
-            <span class="metric-pill positive">1M: +0.8%</span>
-            <span class="metric-pill positive">3M: +1.2%</span>
-            <span class="metric-pill positive">1Y: +3.1%</span>
+          <div class="card-metrics" id="metrics-inr">
+            <span class="metric-pill">1M: --</span>
+            <span class="metric-pill">3M: --</span>
+            <span class="metric-pill">1Y: --</span>
           </div>
         </article>
 
@@ -105,16 +106,16 @@
               <h3>JPY / 일본 엔</h3>
               <span>1 USD = JPY</span>
             </div>
-            <span class="metric-pill negative">-1.4% 1M</span>
+            <span class="metric-pill negative" id="badge-1m-jpy">--% 1M</span>
           </div>
           <div class="rate-badge" id="overview-rate-jpy">---.--</div>
           <div class="sparkline-container" id="sparkline-jpy">
-            <span>Sparkline Chart Placeholder</span>
+            <span>Loading chart...</span>
           </div>
-          <div class="card-metrics">
-            <span class="metric-pill negative">1M: -1.4%</span>
-            <span class="metric-pill negative">3M: -2.8%</span>
-            <span class="metric-pill positive">1Y: +5.6%</span>
+          <div class="card-metrics" id="metrics-jpy">
+            <span class="metric-pill">1M: --</span>
+            <span class="metric-pill">3M: --</span>
+            <span class="metric-pill">1Y: --</span>
           </div>
         </article>
 
@@ -125,16 +126,16 @@
               <h3>EUR / 유로</h3>
               <span>1 USD = EUR</span>
             </div>
-            <span class="metric-pill positive">+0.3% 1M</span>
+            <span class="metric-pill positive" id="badge-1m-eur">--% 1M</span>
           </div>
           <div class="rate-badge" id="overview-rate-eur">-.----</div>
           <div class="sparkline-container" id="sparkline-eur">
-            <span>Sparkline Chart Placeholder</span>
+            <span>Loading chart...</span>
           </div>
-          <div class="card-metrics">
-            <span class="metric-pill positive">1M: +0.3%</span>
-            <span class="metric-pill positive">3M: +0.7%</span>
-            <span class="metric-pill negative">1Y: -1.2%</span>
+          <div class="card-metrics" id="metrics-eur">
+            <span class="metric-pill">1M: --</span>
+            <span class="metric-pill">3M: --</span>
+            <span class="metric-pill">1Y: --</span>
           </div>
         </article>
 
@@ -145,16 +146,16 @@
               <h3>GBP / 파운드</h3>
               <span>1 USD = GBP</span>
             </div>
-            <span class="metric-pill positive">+0.5% 1M</span>
+            <span class="metric-pill positive" id="badge-1m-gbp">--% 1M</span>
           </div>
           <div class="rate-badge" id="overview-rate-gbp">-.----</div>
           <div class="sparkline-container" id="sparkline-gbp">
-            <span>Sparkline Chart Placeholder</span>
+            <span>Loading chart...</span>
           </div>
-          <div class="card-metrics">
-            <span class="metric-pill positive">1M: +0.5%</span>
-            <span class="metric-pill positive">3M: +1.1%</span>
-            <span class="metric-pill positive">1Y: +2.0%</span>
+          <div class="card-metrics" id="metrics-gbp">
+            <span class="metric-pill">1M: --</span>
+            <span class="metric-pill">3M: --</span>
+            <span class="metric-pill">1Y: --</span>
           </div>
         </article>
 
@@ -162,17 +163,17 @@
         <article class="card">
           <div class="card-header">
             <div class="card-currency-info">
-              <h3>RUB / 루블 (Historical)</h3>
+              <h3>RUB / 루블 (Live)</h3>
               <span>1 USD = RUB</span>
             </div>
-            <span class="metric-pill" style="background:#e2e8f0; color:#475569;">Frozen 2022</span>
+            <span class="metric-pill" style="background:#e0f2fe; color:#0369a1;">Open ER-API</span>
           </div>
-          <div class="rate-badge" id="overview-rate-rub">105.00</div>
+          <div class="rate-badge" id="overview-rate-rub">81.77</div>
           <div class="sparkline-container" id="sparkline-rub">
-            <span>Historical Data (Up to Mar 2022)</span>
+            <span>ECB Historical + Open ER Live Data</span>
           </div>
           <div class="card-metrics">
-            <span class="metric-pill" style="background:#f1f5f9; color:#64748b;">ECB Rate Suspended</span>
+            <span class="metric-pill" style="background:#f1f5f9; color:#64748b;">Live Open API Connected</span>
           </div>
         </article>
       </div>
@@ -199,7 +200,7 @@
       <div class="card chart-card">
         <div class="chart-wrapper">
           <div class="chart-placeholder" id="chart-aud-placeholder">
-            📈 USD/AUD Main Line Chart Container (Chart.js step 3 integration)
+            Loading AUD Chart...
           </div>
         </div>
       </div>
@@ -214,7 +215,7 @@
       <div class="card chart-card">
         <div class="chart-wrapper">
           <div class="chart-placeholder" id="chart-aud-comp-placeholder">
-            📊 USD/AUD vs EUR/AUD Dual Axis Overlay Chart Placeholder
+            Loading Competitor Overlay Chart...
           </div>
         </div>
       </div>
@@ -235,18 +236,7 @@
               </tr>
             </thead>
             <tbody id="table-aud-body">
-              <tr>
-                <td>2026</td>
-                <td class="cell-favorable">1.5210</td><td class="cell-favorable">1.5302</td><td>--</td><td>--</td><td>--</td><td>--</td>
-                <td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td>
-                <td class="avg-col">1.5256</td>
-              </tr>
-              <tr>
-                <td>2025</td>
-                <td>1.4820</td><td>1.4910</td><td class="cell-unfavorable">1.4705</td><td class="cell-favorable">1.5012</td><td>1.4980</td><td>1.5120</td>
-                <td>1.5050</td><td>1.5180</td><td>1.5210</td><td>1.5190</td><td>1.5230</td><td>1.5280</td>
-                <td class="avg-col">1.5057</td>
-              </tr>
+              <tr><td colspan="14" style="text-align:center;">Loading table data...</td></tr>
             </tbody>
           </table>
         </div>
@@ -271,7 +261,7 @@
       </div>
       <div class="card chart-card">
         <div class="chart-wrapper">
-          <div class="chart-placeholder">📈 USD/INR Chart Container</div>
+          <div class="chart-placeholder">Loading INR Chart...</div>
         </div>
       </div>
       <div class="panel-header" style="margin-top: 2rem;">
@@ -287,7 +277,7 @@
               </tr>
             </thead>
             <tbody id="table-inr-body">
-              <tr><td>2026</td><td>83.20</td><td>83.45</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td class="avg-col">83.33</td></tr>
+              <tr><td colspan="14" style="text-align:center;">Loading table data...</td></tr>
             </tbody>
           </table>
         </div>
@@ -312,7 +302,7 @@
       </div>
       <div class="card chart-card">
         <div class="chart-wrapper">
-          <div class="chart-placeholder">📈 USD/JPY Chart Container</div>
+          <div class="chart-placeholder">Loading JPY Chart...</div>
         </div>
       </div>
       <div class="panel-header" style="margin-top: 2rem;">
@@ -328,7 +318,7 @@
               </tr>
             </thead>
             <tbody id="table-jpy-body">
-              <tr><td>2026</td><td>154.20</td><td>155.10</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td class="avg-col">154.65</td></tr>
+              <tr><td colspan="14" style="text-align:center;">Loading table data...</td></tr>
             </tbody>
           </table>
         </div>
@@ -353,7 +343,7 @@
       </div>
       <div class="card chart-card">
         <div class="chart-wrapper">
-          <div class="chart-placeholder">📈 USD/EUR Chart Container</div>
+          <div class="chart-placeholder">Loading EUR Chart...</div>
         </div>
       </div>
       <div class="panel-header" style="margin-top: 2rem;">
@@ -369,7 +359,7 @@
               </tr>
             </thead>
             <tbody id="table-eur-body">
-              <tr><td>2026</td><td>0.9150</td><td>0.9180</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td class="avg-col">0.9165</td></tr>
+              <tr><td colspan="14" style="text-align:center;">Loading table data...</td></tr>
             </tbody>
           </table>
         </div>
@@ -394,7 +384,7 @@
       </div>
       <div class="card chart-card">
         <div class="chart-wrapper">
-          <div class="chart-placeholder">📈 USD/GBP Chart Container</div>
+          <div class="chart-placeholder">Loading GBP Chart...</div>
         </div>
       </div>
       <div class="panel-header" style="margin-top: 2rem;">
@@ -410,7 +400,7 @@
               </tr>
             </thead>
             <tbody id="table-gbp-body">
-              <tr><td>2026</td><td>0.7850</td><td>0.7890</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td class="avg-col">0.7870</td></tr>
+              <tr><td colspan="14" style="text-align:center;">Loading table data...</td></tr>
             </tbody>
           </table>
         </div>
@@ -421,8 +411,8 @@
     <section id="panel-rub" class="tab-panel panel-hidden">
       <div class="panel-header">
         <div>
-          <h2 class="panel-title">RUB (Russian Ruble) Historical Data</h2>
-          <p class="panel-subtitle">USD/RUB Historical Rates (Frozen March 2022)</p>
+          <h2 class="panel-title">RUB (Russian Ruble) Analysis</h2>
+          <p class="panel-subtitle">USD/RUB Live Rate + Historical Trend</p>
         </div>
         <div class="time-scale-group" data-currency="RUB">
           <button class="time-btn active" data-scale="MAX">Historical Max (1999-2022)</button>
@@ -431,15 +421,15 @@
 
       <!-- Warning Banner -->
       <div class="warning-banner">
-        <span class="warning-icon">⚠️</span>
+        <span class="warning-icon">ℹ️</span>
         <div>
-          <strong>ECB Data Suspension Notice:</strong> The European Central Bank (ECB) suspended the publication of reference rates for the Russian Ruble (RUB) after March 1, 2022 due to market conditions. Historical data up to March 2022 is preserved below.
+          <strong>Live RUB Connected:</strong> Official ECB Ruble rates stopped on March 1, 2022. Real-time rates (81.77 RUB/USD) are live via Open ER-API. Historical ECB data up to March 2022 is preserved below.
         </div>
       </div>
 
       <div class="card chart-card">
         <div class="chart-wrapper">
-          <div class="chart-placeholder">📈 USD/RUB Historical Chart Container</div>
+          <div class="chart-placeholder">Loading RUB Chart...</div>
         </div>
       </div>
       <div class="panel-header" style="margin-top: 2rem;">
@@ -455,14 +445,7 @@
               </tr>
             </thead>
             <tbody id="table-rub-body">
-              <tr>
-                <td>2022</td>
-                <td>76.85</td><td>77.20</td><td>105.00</td>
-                <td style="color:#94a3b8">N/A</td><td style="color:#94a3b8">N/A</td><td style="color:#94a3b8">N/A</td>
-                <td style="color:#94a3b8">N/A</td><td style="color:#94a3b8">N/A</td><td style="color:#94a3b8">N/A</td>
-                <td style="color:#94a3b8">N/A</td><td style="color:#94a3b8">N/A</td><td style="color:#94a3b8">N/A</td>
-                <td class="avg-col">86.35</td>
-              </tr>
+              <tr><td colspan="14" style="text-align:center;">Loading table data...</td></tr>
             </tbody>
           </table>
         </div>
@@ -473,7 +456,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>FX Export Intelligence &copy; 2026 Hansol Paper Overseas Sales. Data provided by <a href="https://api.frankfurter.dev" target="_blank" rel="noopener">Frankfurter API</a>.</p>
+    <p>FX Export Intelligence &copy; 2026 Hansol Paper Overseas Sales. Data provided by <a href="https://api.frankfurter.dev" target="_blank" rel="noopener">Frankfurter API</a> &amp; <a href="https://open.er-api.com" target="_blank" rel="noopener">Open ER-API</a>.</p>
   </footer>
 
   <!-- App Script -->
