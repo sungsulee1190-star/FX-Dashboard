@@ -1,6 +1,6 @@
 /**
  * FX Dashboard - Main Application Engine & Data Layer
- * Step 3: Interactive Chart.js Line Charts, AUD Competitor Comparison Overlay, Overview Sparklines & Time Scale Controls
+ * Step 4: Full Dynamic Monthly Average Tables (Year x Month Grid) with YoY Color Coding & Time Scale Integration
  */
 
 // Global App Configuration
@@ -186,33 +186,6 @@ const FXDataService = {
     });
   },
 
-  calculateChangePct(dailyRates, periodDays) {
-    const dates = Object.keys(dailyRates).sort();
-    if (dates.length < 2) return 0;
-
-    const latestDate = dates[dates.length - 1];
-    const latestRate = dailyRates[latestDate];
-
-    const targetTime = new Date(latestDate).getTime() - (periodDays * 24 * 60 * 60 * 1000);
-    
-    let closestDate = dates[0];
-    let minDiff = Math.abs(new Date(dates[0]).getTime() - targetTime);
-
-    for (let i = 1; i < dates.length; i++) {
-      const diff = Math.abs(new Date(dates[i]).getTime() - targetTime);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestDate = dates[i];
-      }
-    }
-
-    const pastRate = dailyRates[closestDate];
-    if (!pastRate || pastRate === 0) return 0;
-
-    const pct = ((latestRate - pastRate) / pastRate) * 100;
-    return parseFloat(pct.toFixed(2));
-  },
-
   getStartDateForScale(scaleStr) {
     const now = new Date();
     switch (scaleStr) {
@@ -222,7 +195,7 @@ const FXDataService = {
       case '3Y': now.setFullYear(now.getFullYear() - 3); break;
       case '5Y': now.setFullYear(now.getFullYear() - 5); break;
       case 'MAX': return '1999-01-04';
-      default: now.setFullYear(now.getFullYear() - 1);
+      default: now.setFullYear(now.getFullYear() - 3);
     }
     return now.toISOString().split('T')[0];
   },
@@ -281,7 +254,6 @@ async function loadOverviewData() {
     }
   }
 
-  // Render Mini Sparkline Charts
   renderOverviewSparklines();
 }
 
@@ -405,10 +377,7 @@ async function renderCurrencyTabChart(currency, scale = '1Y') {
         }
       },
       scales: {
-        x: {
-          grid: { display: false },
-          ticks: { maxTicksLimit: 10 }
-        },
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
         y: {
           grid: { color: '#f1f5f9' },
           ticks: {
@@ -418,10 +387,13 @@ async function renderCurrencyTabChart(currency, scale = '1Y') {
       }
     }
   }));
+
+  // Also render monthly average table
+  renderMonthlyAverageTable(currency, scale);
 }
 
 /**
- * Render AUD Competitor Comparison Chart (USD/AUD vs EUR/AUD Overlay)
+ * Render AUD Competitor Comparison Chart
  */
 async function renderAudCompetitorChart(scale = '1Y') {
   const container = document.getElementById('chart-aud-comp-placeholder');
@@ -450,7 +422,7 @@ async function renderAudCompetitorChart(scale = '1Y') {
         {
           label: "Peter's Rate: USD / AUD (Left Axis)",
           data: usdAudValues,
-          borderColor: '#2563eb', // Blue
+          borderColor: '#2563eb',
           backgroundColor: 'transparent',
           borderWidth: 2,
           yAxisID: 'yUsd',
@@ -460,7 +432,7 @@ async function renderAudCompetitorChart(scale = '1Y') {
         {
           label: "German Competitor: EUR / AUD (Right Axis)",
           data: eurAudValues,
-          borderColor: '#dc2626', // Red
+          borderColor: '#dc2626',
           backgroundColor: 'transparent',
           borderWidth: 2,
           borderDash: [4, 4],
@@ -504,7 +476,77 @@ async function renderAudCompetitorChart(scale = '1Y') {
 }
 
 /**
- * Tab Navigation & Lazy Chart Loading
+ * Render Monthly Average Table (Year x Month Grid) with YoY Color Coding
+ */
+async function renderMonthlyAverageTable(currency, scale = '3Y') {
+  const tbody = document.getElementById(`table-${currency.toLowerCase()}-body`);
+  if (!tbody) return;
+
+  const startDate = FXDataService.getStartDateForScale(scale === '6M' || scale === '1Y' ? '3Y' : scale);
+  const endDate = new Date().toISOString().split('T')[0];
+
+  const hist = await FXDataService.fetchHistoricalSeries(currency, startDate, endDate);
+  const yearlyData = FXDataService.calculateMonthlyAverages(hist.dailyRates || {});
+
+  if (yearlyData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="14" style="text-align:center; padding:1rem; color:var(--text-muted);">No monthly average data available for ${currency}</td></tr>`;
+    return;
+  }
+
+  // Create a map for quick Year-Month lookup: { "2026-01": avgVal }
+  const ymMap = {};
+  yearlyData.forEach(yrObj => {
+    Object.entries(yrObj.months).forEach(([month, avg]) => {
+      ymMap[`${yrObj.year}-${month}`] = avg;
+    });
+  });
+
+  const monthKeys = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+  const precision = currency === 'JPY' || currency === 'INR' || currency === 'RUB' ? 2 : 4;
+
+  let htmlRows = '';
+
+  yearlyData.forEach(yrObj => {
+    const year = parseInt(yrObj.year, 10);
+    const prevYear = year - 1;
+
+    let rowCells = `<td>${year}</td>`;
+
+    monthKeys.forEach(m => {
+      const currentAvg = yrObj.months[m];
+
+      if (currentAvg !== undefined && currentAvg !== null) {
+        const prevAvg = ymMap[`${prevYear}-${m}`];
+        let cellClass = '';
+
+        if (prevAvg !== undefined && prevAvg !== null) {
+          // If current rate > previous year same month rate -> Currency weakened vs USD (favorable for paper buyer)
+          if (currentAvg > prevAvg) {
+            cellClass = 'cell-favorable';
+          } else if (currentAvg < prevAvg) {
+            cellClass = 'cell-unfavorable';
+          }
+        }
+
+        rowCells += `<td class="${cellClass}" title="${year}-${m} Avg: ${currentAvg.toFixed( precision + 2 )}">${currentAvg.toFixed(precision)}</td>`;
+      } else {
+        // N/A cell for missing or future months
+        rowCells += `<td style="color:#94a3b8;">--</td>`;
+      }
+    });
+
+    // Annual Avg Column
+    const annualStr = yrObj.annualAvg ? yrObj.annualAvg.toFixed(precision) : '--';
+    rowCells += `<td class="avg-col">${annualStr}</td>`;
+
+    htmlRows += `<tr>${rowCells}</tr>`;
+  });
+
+  tbody.innerHTML = htmlRows;
+}
+
+/**
+ * Tab Navigation & Lazy Rendering
  */
 function initTabNavigation() {
   const tabButtons = document.querySelectorAll('.tab-btn');
@@ -523,7 +565,6 @@ function initTabNavigation() {
 
     history.replaceState(null, null, `#${tabId}`);
 
-    // Trigger Chart Render for Active Currency Tab
     const currUpper = tabId.toUpperCase();
     if (['AUD', 'INR', 'JPY', 'EUR', 'GBP', 'RUB'].includes(currUpper)) {
       renderCurrencyTabChart(currUpper, '1Y');
