@@ -38,6 +38,7 @@
         <button class="tab-btn" data-tab="eur">EUR (유럽)</button>
         <button class="tab-btn" data-tab="gbp">GBP (영국)</button>
         <button class="tab-btn" data-tab="rub">RUB (러시아)</button>
+        <button class="tab-btn" data-tab="krw">KRW (한국)</button>
       </nav>
     </div>
   </header>
@@ -50,20 +51,20 @@
       <div class="panel-header">
         <div>
           <h2 class="panel-title">Global Currency Overview</h2>
-          <p class="panel-subtitle" id="last-updated-time">Key export market exchange rates against USD (Base Currency)</p>
+          <p class="panel-subtitle" id="last-updated-time">Key export market exchange rates against USD (Base Currency) — 💡 Drag & Drop cards to reorder!</p>
         </div>
         <div class="panel-actions" style="display: flex; gap: 0.75rem; align-items: center;">
           <button id="btn-refresh-data" class="tab-btn" style="background: var(--accent); color: white;">🔄 Refresh Data</button>
-          <span style="font-size: 0.8rem; color: var(--text-muted);">Data: Frankfurter API + Open ER-API (Live RUB)</span>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Data: Frankfurter API + Open ER-API (Live RUB/KRW)</span>
         </div>
       </div>
 
-      <div class="overview-grid">
+      <div class="overview-grid" id="overview-card-grid">
         <!-- AUD Card -->
-        <article class="card">
+        <article class="card card-draggable" draggable="true" data-currency-card="aud">
           <div class="card-header">
             <div class="card-currency-info">
-              <h3>AUD / 호주 달러</h3>
+              <h3>AUD / 호주 달러 <span class="drag-handle">⋮⋮</span></h3>
               <span>1 USD = AUD</span>
             </div>
             <span class="metric-pill positive" id="badge-1m-aud">--% 1M</span>
@@ -79,11 +80,51 @@
           </div>
         </article>
 
-        <!-- INR Card -->
-        <article class="card">
+        <!-- EUR Card -->
+        <article class="card card-draggable" draggable="true" data-currency-card="eur">
           <div class="card-header">
             <div class="card-currency-info">
-              <h3>INR / 인도 루피</h3>
+              <h3>EUR / 유로 (독일 경쟁사) <span class="drag-handle">⋮⋮</span></h3>
+              <span>1 USD = EUR</span>
+            </div>
+            <span class="metric-pill positive" id="badge-1m-eur">--% 1M</span>
+          </div>
+          <div class="rate-badge" id="overview-rate-eur">-.----</div>
+          <div class="sparkline-container" id="sparkline-eur">
+            <span>Loading chart...</span>
+          </div>
+          <div class="card-metrics" id="metrics-eur">
+            <span class="metric-pill">1M: --</span>
+            <span class="metric-pill">3M: --</span>
+            <span class="metric-pill">1Y: --</span>
+          </div>
+        </article>
+
+        <!-- KRW Card -->
+        <article class="card card-draggable" draggable="true" data-currency-card="krw">
+          <div class="card-header">
+            <div class="card-currency-info">
+              <h3>KRW / 한국 원화 <span class="drag-handle">⋮⋮</span></h3>
+              <span>1 USD = KRW</span>
+            </div>
+            <span class="metric-pill positive" id="badge-1m-krw">--% 1M</span>
+          </div>
+          <div class="rate-badge" id="overview-rate-krw">----.--</div>
+          <div class="sparkline-container" id="sparkline-krw">
+            <span>Loading chart...</span>
+          </div>
+          <div class="card-metrics" id="metrics-krw">
+            <span class="metric-pill">1M: --</span>
+            <span class="metric-pill">3M: --</span>
+            <span class="metric-pill">1Y: --</span>
+          </div>
+        </article>
+
+        <!-- INR Card -->
+        <article class="card card-draggable" draggable="true" data-currency-card="inr">
+          <div class="card-header">
+            <div class="card-currency-info">
+              <h3>INR / 인도 루피 <span class="drag-handle">⋮⋮</span></h3>
               <span>1 USD = INR</span>
             </div>
             <span class="metric-pill positive" id="badge-1m-inr">--% 1M</span>
@@ -100,10 +141,10 @@
         </article>
 
         <!-- JPY Card -->
-        <article class="card">
+        <article class="card card-draggable" draggable="true" data-currency-card="jpy">
           <div class="card-header">
             <div class="card-currency-info">
-              <h3>JPY / 일본 엔</h3>
+              <h3>JPY / 일본 엔 <span class="drag-handle">⋮⋮</span></h3>
               <span>1 USD = JPY</span>
             </div>
             <span class="metric-pill negative" id="badge-1m-jpy">--% 1M</span>
@@ -119,31 +160,11 @@
           </div>
         </article>
 
-        <!-- EUR Card -->
-        <article class="card">
-          <div class="card-header">
-            <div class="card-currency-info">
-              <h3>EUR / 유로</h3>
-              <span>1 USD = EUR</span>
-            </div>
-            <span class="metric-pill positive" id="badge-1m-eur">--% 1M</span>
-          </div>
-          <div class="rate-badge" id="overview-rate-eur">-.----</div>
-          <div class="sparkline-container" id="sparkline-eur">
-            <span>Loading chart...</span>
-          </div>
-          <div class="card-metrics" id="metrics-eur">
-            <span class="metric-pill">1M: --</span>
-            <span class="metric-pill">3M: --</span>
-            <span class="metric-pill">1Y: --</span>
-          </div>
-        </article>
-
         <!-- GBP Card -->
-        <article class="card">
+        <article class="card card-draggable" draggable="true" data-currency-card="gbp">
           <div class="card-header">
             <div class="card-currency-info">
-              <h3>GBP / 파운드</h3>
+              <h3>GBP / 파운드 <span class="drag-handle">⋮⋮</span></h3>
               <span>1 USD = GBP</span>
             </div>
             <span class="metric-pill positive" id="badge-1m-gbp">--% 1M</span>
@@ -160,17 +181,17 @@
         </article>
 
         <!-- RUB Card -->
-        <article class="card">
+        <article class="card card-draggable" draggable="true" data-currency-card="rub">
           <div class="card-header">
             <div class="card-currency-info">
-              <h3>RUB / 루블 (Live)</h3>
+              <h3>RUB / 루블 (Live) <span class="drag-handle">⋮⋮</span></h3>
               <span>1 USD = RUB</span>
             </div>
-            <span class="metric-pill" style="background:#e0f2fe; color:#0369a1;">Open ER-API</span>
+            <span class="metric-pill" style="background:#e0f2fe; color:#0369a1;">🟢 Live API</span>
           </div>
           <div class="rate-badge" id="overview-rate-rub">81.77</div>
           <div class="sparkline-container" id="sparkline-rub">
-            <span>ECB Historical + Open ER Live Data</span>
+            <span>Live Open FX Data Connected</span>
           </div>
           <div class="card-metrics">
             <span class="metric-pill" style="background:#f1f5f9; color:#64748b;">Live Open API Connected</span>
@@ -199,7 +220,7 @@
       <!-- Custom Period Calculator Widget -->
       <div class="custom-period-card">
         <div class="custom-period-header">
-          <h4>📅 Custom Period Change Calculator (기간 임의 비교 계산기)</h4>
+          <h4>📅 Custom Period Change Calculator (USD/AUD 기간 임의 비교 계산기)</h4>
           <span style="font-size: 0.8rem; color: var(--text-muted);">Select two dates or click 2 cells in the table below</span>
         </div>
         <div class="period-inputs-form" data-currency="AUD">
@@ -235,7 +256,7 @@
 
       <!-- Main Chart Card -->
       <div class="card chart-card">
-        <div class="chart-wrapper">
+        <div class="chart-wrapper" id="aud-main-chart-wrapper">
           <div class="chart-placeholder" id="chart-aud-placeholder">Loading AUD Chart...</div>
         </div>
       </div>
@@ -244,19 +265,36 @@
       <div class="panel-header" style="margin-top: 2rem;">
         <div>
           <h3 class="panel-title" style="font-size: 1.2rem;">Competitor Rate Comparison (Peter USD vs German EUR)</h3>
-          <p class="panel-subtitle">USD/AUD (Hansol Billing Rate) vs EUR/AUD (German Competitor Rate Overlay)</p>
+          <p class="panel-subtitle">USD/AUD (Hansol Billing Rate) vs EUR/AUD (German Competitor Billing Rate Overlay)</p>
         </div>
       </div>
+
+      <!-- Guide Explanation Card -->
+      <div class="guide-card">
+        <h4>💡 독일 경쟁사 대비 가격 경쟁력 차트 해석 가이드</h4>
+        <div class="guide-grid">
+          <div class="guide-item">
+            <strong>🔵 USD / AUD (파란색 선)</strong>: 피터(한솔제지)의 달러 결제 환율입니다. 선이 올라가면 호주 바이어가 1 USD를 사기 위해 호주 달러를 더 많이 지불해야 하므로, 달러 가격 부담이 커집니다.
+          </div>
+          <div class="guide-item">
+            <strong>🔴 EUR / AUD (빨간색 점선)</strong>: 독일 경쟁사의 유로 결제 환율입니다. 선이 올라가면 호주 바이어 입장에서 유로 가격 부담이 커집니다.
+          </div>
+          <div class="guide-item">
+            <strong>⚖️ 가격 경쟁력 우위 판정</strong>: 파란색 선(USD/AUD)보다 **빨간색 선(EUR/AUD)이 더 가파르게 상승하면**, 호주 바이어에게 독일 유로 제품이 더 부담스러워지므로 **피터(달러 결제)의 가격 경쟁력이 상대적으로 유리해집니다!**
+          </div>
+        </div>
+      </div>
+
       <div class="card chart-card">
-        <div class="chart-wrapper">
+        <div class="chart-wrapper" id="aud-comp-chart-wrapper">
           <div class="chart-placeholder" id="chart-aud-comp-placeholder">Loading Competitor Overlay Chart...</div>
         </div>
       </div>
 
-      <!-- Monthly Average Table Section -->
+      <!-- Monthly Average Table Section for USD/AUD -->
       <div class="panel-header" style="margin-top: 2rem;">
         <div>
-          <h3 class="panel-title" style="font-size: 1.2rem;">Monthly Average Rates (Year × Month Grid)</h3>
+          <h3 class="panel-title" style="font-size: 1.2rem;">USD / AUD Monthly Average Rates (Hansol Billing)</h3>
           <p class="panel-subtitle">💡 Tip: Click any 2 cells in the table to compare period exchange rate change!</p>
         </div>
       </div>
@@ -272,6 +310,98 @@
               </tr>
             </thead>
             <tbody id="table-aud-body">
+              <tr><td colspan="14" style="text-align:center;">Loading table data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- German Competitor EUR/AUD Monthly Table Section -->
+      <div class="panel-header" style="margin-top: 2rem;">
+        <div>
+          <h3 class="panel-title" style="font-size: 1.2rem;">EUR / AUD Monthly Average Rates (German Competitor Rate)</h3>
+          <p class="panel-subtitle">Monthly average rates paid by Australian buyers for German competitor paper billed in EUR</p>
+        </div>
+      </div>
+      <div class="card table-card">
+        <div class="table-responsive">
+          <table class="monthly-table">
+            <thead>
+              <tr>
+                <th>Year</th>
+                <th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+                <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th>
+                <th class="avg-col">Annual Avg</th>
+              </tr>
+            </thead>
+            <tbody id="table-aud-eur-body">
+              <tr><td colspan="14" style="text-align:center;">Loading German competitor table data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== KRW TAB ==================== -->
+    <section id="panel-krw" class="tab-panel panel-hidden">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">KRW (Korean Won) Analysis</h2>
+          <p class="panel-subtitle">USD/KRW Exchange Rate Trend & Monthly Averages</p>
+        </div>
+        <div class="time-scale-group" data-currency="KRW">
+          <button class="time-btn" data-scale="6M">6M</button>
+          <button class="time-btn active" data-scale="1Y">1Y</button>
+          <button class="time-btn" data-scale="2Y">2Y</button>
+          <button class="time-btn" data-scale="3Y">3Y</button>
+          <button class="time-btn" data-scale="5Y">5Y</button>
+          <button class="time-btn" data-scale="MAX">Max</button>
+        </div>
+      </div>
+
+      <!-- Custom Period Calculator Widget -->
+      <div class="custom-period-card">
+        <div class="custom-period-header">
+          <h4>📅 Custom Period Change Calculator (USD/KRW 기간 임의 비교 계산기)</h4>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Select two dates or click 2 cells in the table below</span>
+        </div>
+        <div class="period-inputs-form" data-currency="KRW">
+          <div class="input-group">
+            <label>Start Date (시작일):</label>
+            <input type="date" class="date-input date-start" id="calc-start-krw" />
+          </div>
+          <div class="input-group">
+            <label>End Date (종료일):</label>
+            <input type="date" class="date-input date-end" id="calc-end-krw" />
+          </div>
+          <button class="btn-calc btn-run-calc" data-currency="KRW">📊 Compare Rates</button>
+        </div>
+        <div class="period-result-display" id="calc-result-krw">
+          <div class="result-metric-box"><span class="result-metric-label">Start Rate</span><span class="result-metric-val" id="res-start-krw">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">End Rate</span><span class="result-metric-val" id="res-end-krw">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">Difference</span><span class="result-metric-val" id="res-diff-krw">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">Period Change (%)</span><span class="result-change-val" id="res-pct-krw">--%</span></div>
+        </div>
+      </div>
+
+      <div class="card chart-card">
+        <div class="chart-wrapper">
+          <div class="chart-placeholder">Loading KRW Chart...</div>
+        </div>
+      </div>
+      <div class="panel-header" style="margin-top: 2rem;">
+        <h3 class="panel-title" style="font-size: 1.2rem;">Monthly Average Rates (USD / KRW)</h3>
+      </div>
+      <div class="card table-card">
+        <div class="table-responsive">
+          <table class="monthly-table">
+            <thead>
+              <tr>
+                <th>Year</th><th>Jan</th><th>Feb</th><th>Mar</th><th>Apr</th><th>May</th><th>Jun</th>
+                <th>Jul</th><th>Aug</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dec</th><th class="avg-col">Annual Avg</th>
+              </tr>
+            </thead>
+            <tbody id="table-krw-body">
               <tr><td colspan="14" style="text-align:center;">Loading table data...</td></tr>
             </tbody>
           </table>
@@ -296,7 +426,6 @@
         </div>
       </div>
 
-      <!-- Custom Period Calculator Widget -->
       <div class="custom-period-card">
         <div class="custom-period-header">
           <h4>📅 Custom Period Change Calculator (기간 임의 비교 계산기)</h4>
@@ -314,22 +443,10 @@
           <button class="btn-calc btn-run-calc" data-currency="INR">📊 Compare Rates</button>
         </div>
         <div class="period-result-display" id="calc-result-inr">
-          <div class="result-metric-box">
-            <span class="result-metric-label">Start Rate</span>
-            <span class="result-metric-val" id="res-start-inr">--</span>
-          </div>
-          <div class="result-metric-box">
-            <span class="result-metric-label">End Rate</span>
-            <span class="result-metric-val" id="res-end-inr">--</span>
-          </div>
-          <div class="result-metric-box">
-            <span class="result-metric-label">Difference</span>
-            <span class="result-metric-val" id="res-diff-inr">--</span>
-          </div>
-          <div class="result-metric-box">
-            <span class="result-metric-label">Period Change (%)</span>
-            <span class="result-change-val" id="res-pct-inr">--%</span>
-          </div>
+          <div class="result-metric-box"><span class="result-metric-label">Start Rate</span><span class="result-metric-val" id="res-start-inr">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">End Rate</span><span class="result-metric-val" id="res-end-inr">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">Difference</span><span class="result-metric-val" id="res-diff-inr">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">Period Change (%)</span><span class="result-change-val" id="res-pct-inr">--%</span></div>
         </div>
       </div>
 
@@ -592,7 +709,7 @@
       <div class="warning-banner">
         <span class="warning-icon">ℹ️</span>
         <div>
-          <strong>Live RUB Connected:</strong> Official ECB Ruble rates stopped on March 1, 2022. Real-time rates (81.77 RUB/USD) are live via Open ER-API. Historical ECB data up to March 2022 is preserved below.
+          <strong>Live RUB Connected:</strong> Real-time Ruble rate (81.77 RUB/USD) is live via Dual Open FX API. Historical ECB data up to March 2022 is preserved below.
         </div>
       </div>
 

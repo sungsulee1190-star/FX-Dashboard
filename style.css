@@ -156,7 +156,35 @@ body {
   color: var(--text-muted);
 }
 
-/* Custom Period Calculator Bar */
+/* Drag & Drop Reordering Styles */
+.card-draggable {
+  cursor: grab;
+  user-select: none;
+}
+
+.card-draggable:active {
+  cursor: grabbing;
+}
+
+.card-draggable.dragging {
+  opacity: 0.4;
+  border: 2px dashed var(--accent);
+  transform: scale(0.98);
+}
+
+.card-draggable.drag-over {
+  border: 2px solid var(--accent);
+  box-shadow: var(--shadow-lg);
+}
+
+.drag-handle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  cursor: grab;
+  margin-left: 4px;
+}
+
+/* Custom Period Calculator Widget */
 .custom-period-card {
   background: #ffffff;
   border: 1px solid #cbd5e1;
@@ -276,6 +304,46 @@ body {
 
 .result-change-val.negative {
   color: var(--red-text);
+}
+
+/* Guide Card for Competitor Analysis */
+.guide-card {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid #3b82f6;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  color: #1e3a8a;
+}
+
+.guide-card h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.guide-item {
+  background: #ffffff;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #dbeafe;
+}
+
+.guide-item strong {
+  color: #1d4ed8;
 }
 
 /* Warning Banner for RUB */

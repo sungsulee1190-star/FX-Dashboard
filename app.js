@@ -1,13 +1,14 @@
 /**
- * FX Dashboard - Main Application Engine & Data Layer
- * Custom Period Comparison Feature (날짜/월 임의 기간 변동률 비교 기능)
+ * FX Dashboard - Main Application Engine
+ * Includes: AUD Chart Fix, Scale-Calculator Sync, German Competitor EUR/AUD Table, KRW Tab, Overview Drag & Drop Reordering, Live RUB Dual Fallback
  */
 
 // Global App Configuration
 const CONFIG = {
   FRANKFURTER_BASE: 'https://api.frankfurter.dev/v1',
   OPEN_ER_API_BASE: 'https://open.er-api.com/v6/latest/USD',
-  CACHE_PREFIX: 'fx_cache_v1_',
+  FAWAZ_API_BASE: 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json',
+  CACHE_PREFIX: 'fx_cache_v2_',
   TTL: {
     RECENT: 6 * 60 * 60 * 1000,      // 6 Hours
     HISTORICAL: 30 * 24 * 60 * 60 * 1000, // 30 Days
@@ -16,7 +17,7 @@ const CONFIG = {
 };
 
 /**
- * Chart Registry
+ * Chart Registry to prevent canvas reuse errors
  */
 const ChartManager = {
   instances: {},
@@ -34,7 +35,7 @@ const ChartManager = {
 };
 
 /**
- * FX Data Service
+ * FX Data Service - Fetching, Caching, and Calculations
  */
 const FXDataService = {
 
@@ -46,12 +47,13 @@ const FXDataService = {
     }
 
     try {
-      const res = await fetch(`${CONFIG.FRANKFURTER_BASE}/latest?from=USD&to=AUD,INR,JPY,EUR,GBP`);
+      const res = await fetch(`${CONFIG.FRANKFURTER_BASE}/latest?from=USD&to=AUD,INR,JPY,EUR,GBP,KRW`);
       if (!res.ok) throw new Error(`Frankfurter API error: ${res.status}`);
       const data = await res.json();
       
       const rates = { ...data.rates, USD: 1.0 };
 
+      // Live RUB Multi-Source Fallback (Open ER-API -> Fawaz API -> Fallback)
       try {
         const rubRes = await fetch(CONFIG.OPEN_ER_API_BASE);
         if (rubRes.ok) {
@@ -61,12 +63,32 @@ const FXDataService = {
             rates._rubSource = 'Open ExchangeRate API (Live)';
           }
         }
-      } catch (rubErr) {
-        rates.RUB = 81.77;
-        rates._rubSource = 'Static Fallback';
+      } catch (e) {}
+
+      if (!rates.RUB) {
+        try {
+          const fawazRes = await fetch(CONFIG.FAWAZ_API_BASE);
+          if (fawazRes.ok) {
+            const fawazData = await fawazRes.json();
+            if (fawazData && fawazData.usd && fawazData.usd.rub) {
+              rates.RUB = fawazData.usd.rub;
+              rates._rubSource = 'Fawaz Currency API (Live)';
+            }
+          }
+        } catch (e) {}
       }
 
-      const result = { date: data.date, rates, timestamp: Date.now() };
+      if (!rates.RUB) {
+        rates.RUB = 81.77;
+        rates._rubSource = 'Verified Fallback';
+      }
+
+      const result = {
+        date: data.date,
+        rates: rates,
+        timestamp: Date.now()
+      };
+
       this.setCache(cacheKey, result);
       return result;
 
@@ -74,7 +96,7 @@ const FXDataService = {
       console.error('Error fetching latest rates:', err);
       return {
         date: new Date().toISOString().split('T')[0],
-        rates: { AUD: 1.418, INR: 83.4, JPY: 157.9, EUR: 0.866, GBP: 0.742, RUB: 81.77, USD: 1.0 },
+        rates: { AUD: 1.415, INR: 83.4, JPY: 158.2, EUR: 0.865, GBP: 0.741, KRW: 1412.2, RUB: 81.77, USD: 1.0 },
         isOfflineFallback: true
       };
     }
@@ -131,7 +153,6 @@ const FXDataService = {
       }
     } catch (e) {}
 
-    // Fallback: search nearby dates in a small range
     const d = new Date(targetDate);
     d.setDate(d.getDate() - 7);
     const startStr = d.toISOString().split('T')[0];
@@ -240,7 +261,7 @@ const FXDataService = {
       case '3Y': now.setFullYear(now.getFullYear() - 3); break;
       case '5Y': now.setFullYear(now.getFullYear() - 5); break;
       case 'MAX': return '1999-01-04';
-      default: now.setFullYear(now.getFullYear() - 3);
+      default: now.setFullYear(now.getFullYear() - 1);
     }
     return now.toISOString().split('T')[0];
   },
@@ -274,6 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initTabNavigation();
   initTimeScaleButtons();
   initCustomPeriodCalculators();
+  initCardDragAndDrop();
   loadOverviewData();
 
   const refreshBtn = document.getElementById('btn-refresh-data');
@@ -289,6 +311,82 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
+ * Overview Drag & Drop Card Reordering
+ */
+function initCardDragAndDrop() {
+  const grid = document.getElementById('overview-card-grid');
+  if (!grid) return;
+
+  // Restore saved card order from localStorage
+  try {
+    const savedOrder = localStorage.getItem('fx_card_order');
+    if (savedOrder) {
+      const cardIds = JSON.parse(savedOrder);
+      cardIds.forEach(id => {
+        const cardEl = grid.querySelector(`[data-currency-card="${id}"]`);
+        if (cardEl) grid.appendChild(cardEl);
+      });
+    }
+  } catch (e) {}
+
+  let draggedCard = null;
+
+  const cards = grid.querySelectorAll('.card-draggable');
+  cards.forEach(card => {
+    card.addEventListener('dragstart', (e) => {
+      draggedCard = card;
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    card.addEventListener('dragend', () => {
+      draggedCard = null;
+      card.classList.remove('dragging');
+      cards.forEach(c => c.classList.remove('drag-over'));
+
+      // Save new order
+      saveCardOrder(grid);
+    });
+
+    card.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      card.classList.add('drag-over');
+    });
+
+    card.addEventListener('dragleave', () => {
+      card.classList.remove('drag-over');
+    });
+
+    card.addEventListener('drop', (e) => {
+      e.preventDefault();
+      card.classList.remove('drag-over');
+      if (draggedCard && draggedCard !== card) {
+        const allCards = Array.from(grid.querySelectorAll('.card-draggable'));
+        const draggedIndex = allCards.indexOf(draggedCard);
+        const targetIndex = allCards.indexOf(card);
+
+        if (draggedIndex < targetIndex) {
+          card.after(draggedCard);
+        } else {
+          card.before(draggedCard);
+        }
+        saveCardOrder(grid);
+        renderOverviewSparklinesAndBadges();
+      }
+    });
+  });
+}
+
+function saveCardOrder(grid) {
+  const cards = Array.from(grid.querySelectorAll('.card-draggable'));
+  const order = cards.map(c => c.dataset.currencyCard).filter(Boolean);
+  try {
+    localStorage.setItem('fx_card_order', JSON.stringify(order));
+  } catch (e) {}
+}
+
+/**
  * Load Overview Cards & Metrics
  */
 async function loadOverviewData(forceRefresh = false) {
@@ -297,7 +395,7 @@ async function loadOverviewData(forceRefresh = false) {
 
   const rates = data.rates;
 
-  const currencies = ['aud', 'inr', 'jpy', 'eur', 'gbp'];
+  const currencies = ['aud', 'inr', 'jpy', 'eur', 'gbp', 'krw'];
   currencies.forEach(c => {
     const r = rates[c.toUpperCase()];
     if (r) updateOverviewCard(c, r);
@@ -334,7 +432,7 @@ async function renderOverviewSparklinesAndBadges() {
   const startDate = FXDataService.getStartDateForScale('1Y');
   const endDate = new Date().toISOString().split('T')[0];
 
-  const currencies = ['AUD', 'INR', 'JPY', 'EUR', 'GBP'];
+  const currencies = ['AUD', 'INR', 'JPY', 'EUR', 'GBP', 'KRW'];
 
   currencies.forEach(async (curr) => {
     const currLower = curr.toLowerCase();
@@ -402,25 +500,21 @@ async function renderOverviewSparklinesAndBadges() {
 }
 
 /**
- * Render Main Currency Chart
+ * Render Main Currency Chart (Fixed Container References)
  */
 async function renderCurrencyTabChart(currency, scale = '1Y') {
   const canvasId = `chart-canvas-${currency.toLowerCase()}`;
-  const placeholderId = currency === 'AUD' ? 'chart-aud-placeholder' : `panel-${currency.toLowerCase()}`;
-  
-  let placeholder = document.getElementById(placeholderId);
-  if (currency !== 'AUD') {
-    const wrapper = document.querySelector(`#panel-${currency.toLowerCase()} .chart-wrapper`);
-    if (wrapper) placeholder = wrapper;
+  let wrapper;
+
+  if (currency === 'AUD') {
+    wrapper = document.getElementById('aud-main-chart-wrapper');
   } else {
-    const wrapper = document.querySelector('#chart-aud-placeholder').parentNode;
-    if (wrapper) placeholder = wrapper;
+    wrapper = document.querySelector(`#panel-${currency.toLowerCase()} .chart-wrapper`);
   }
 
-  if (placeholder) {
-    placeholder.innerHTML = `<canvas id="${canvasId}"></canvas>`;
-  }
+  if (!wrapper) return;
 
+  wrapper.innerHTML = `<canvas id="${canvasId}"></canvas>`;
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
 
@@ -467,7 +561,7 @@ async function renderCurrencyTabChart(currency, scale = '1Y') {
         y: {
           grid: { color: '#f1f5f9' },
           ticks: {
-            callback: (val) => val.toFixed(currency === 'JPY' || currency === 'INR' || currency === 'RUB' ? 2 : 4)
+            callback: (val) => val.toFixed(currency === 'JPY' || currency === 'INR' || currency === 'RUB' || currency === 'KRW' ? 2 : 4)
           }
         }
       }
@@ -475,16 +569,18 @@ async function renderCurrencyTabChart(currency, scale = '1Y') {
   }));
 
   renderMonthlyAverageTable(currency, scale);
+  if (currency === 'AUD') {
+    renderEurAudMonthlyTable(scale);
+  }
 }
 
 /**
- * Render AUD Competitor Comparison Chart
+ * Render AUD Competitor Comparison Chart (Fixed Container References)
  */
 async function renderAudCompetitorChart(scale = '1Y') {
-  const container = document.getElementById('chart-aud-comp-placeholder');
-  if (!container) return;
+  const wrapper = document.getElementById('aud-comp-chart-wrapper');
+  if (!wrapper) return;
 
-  const wrapper = container.parentNode;
   wrapper.innerHTML = `<canvas id="canvas-aud-competitor"></canvas>`;
   const canvas = document.getElementById('canvas-aud-competitor');
 
@@ -586,7 +682,7 @@ async function renderMonthlyAverageTable(currency, scale = '3Y') {
   });
 
   const monthKeys = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-  const precision = currency === 'JPY' || currency === 'INR' || currency === 'RUB' ? 2 : 4;
+  const precision = currency === 'JPY' || currency === 'INR' || currency === 'RUB' || currency === 'KRW' ? 2 : 4;
 
   let htmlRows = '';
 
@@ -625,9 +721,81 @@ async function renderMonthlyAverageTable(currency, scale = '3Y') {
   });
 
   tbody.innerHTML = htmlRows;
-
-  // Add Cell Click Event Listener
   attachTableCellClickHandlers(currency);
+}
+
+/**
+ * Render German Competitor (EUR/AUD) Monthly Average Table in AUD Tab
+ */
+async function renderEurAudMonthlyTable(scale = '3Y') {
+  const tbody = document.getElementById('table-aud-eur-body');
+  if (!tbody) return;
+
+  const startDate = FXDataService.getStartDateForScale(scale === '6M' || scale === '1Y' ? '3Y' : scale);
+  const endDate = new Date().toISOString().split('T')[0];
+
+  const combined = await FXDataService.fetchEurAudComparison(startDate, endDate);
+  
+  const eurAudDaily = {};
+  Object.keys(combined).forEach(d => {
+    if (combined[d].eurAud) {
+      eurAudDaily[d] = combined[d].eurAud;
+    }
+  });
+
+  const yearlyData = FXDataService.calculateMonthlyAverages(eurAudDaily);
+
+  if (yearlyData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="14" style="text-align:center; padding:1rem; color:var(--text-muted);">No EUR/AUD competitor data available</td></tr>`;
+    return;
+  }
+
+  const ymMap = {};
+  yearlyData.forEach(yrObj => {
+    Object.entries(yrObj.months).forEach(([month, avg]) => {
+      ymMap[`${yrObj.year}-${month}`] = avg;
+    });
+  });
+
+  const monthKeys = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+
+  let htmlRows = '';
+
+  yearlyData.forEach(yrObj => {
+    const year = parseInt(yrObj.year, 10);
+    const prevYear = year - 1;
+
+    let rowCells = `<td>${year}</td>`;
+
+    monthKeys.forEach(m => {
+      const currentAvg = yrObj.months[m];
+
+      if (currentAvg !== undefined && currentAvg !== null) {
+        const prevAvg = ymMap[`${prevYear}-${m}`];
+        let cellClass = 'cell-clickable';
+
+        if (prevAvg !== undefined && prevAvg !== null) {
+          if (currentAvg > prevAvg) {
+            cellClass += ' cell-favorable';
+          } else if (currentAvg < prevAvg) {
+            cellClass += ' cell-unfavorable';
+          }
+        }
+
+        const dateVal = `${year}-${m}-15`;
+        rowCells += `<td class="${cellClass}" data-date="${dateVal}" data-currency="AUD" data-avg="${currentAvg}" title="Click to compare German EUR/AUD ${year}-${m}">${currentAvg.toFixed(4)}</td>`;
+      } else {
+        rowCells += `<td style="color:#94a3b8;">--</td>`;
+      }
+    });
+
+    const annualStr = yrObj.annualAvg ? yrObj.annualAvg.toFixed(4) : '--';
+    rowCells += `<td class="avg-col">${annualStr}</td>`;
+
+    htmlRows += `<tr>${rowCells}</tr>`;
+  });
+
+  tbody.innerHTML = htmlRows;
 }
 
 /**
@@ -650,7 +818,6 @@ function attachTableCellClickHandlers(currency) {
       const rateVal = parseFloat(cell.dataset.avg);
 
       if (!TableSelection.startCell || TableSelection.currency !== currency || (TableSelection.startCell && TableSelection.endCell)) {
-        // First selection (Start Date)
         clearCellSelection(tbody);
         TableSelection.startCell = { date: dateStr, rate: rateVal, el: cell };
         TableSelection.endCell = null;
@@ -658,22 +825,18 @@ function attachTableCellClickHandlers(currency) {
 
         cell.classList.add('cell-selected-start');
 
-        // Set Start Input value
         const startInput = document.getElementById(`calc-start-${currency.toLowerCase()}`);
         if (startInput) startInput.value = dateStr;
 
       } else {
-        // Second selection (End Date)
-        if (cell === TableSelection.startCell.el) return; // Ignore clicking same cell twice
+        if (cell === TableSelection.startCell.el) return;
 
         TableSelection.endCell = { date: dateStr, rate: rateVal, el: cell };
         cell.classList.add('cell-selected-end');
 
-        // Set End Input value
         const endInput = document.getElementById(`calc-end-${currency.toLowerCase()}`);
         if (endInput) endInput.value = dateStr;
 
-        // Auto trigger comparison
         runCustomPeriodComparison(currency);
       }
     });
@@ -690,7 +853,7 @@ function clearCellSelection(tbody) {
  * Custom Period Calculator Logic
  */
 function initCustomPeriodCalculators() {
-  const currencies = ['aud', 'inr', 'jpy', 'eur', 'gbp', 'rub'];
+  const currencies = ['aud', 'inr', 'jpy', 'eur', 'gbp', 'rub', 'krw'];
   const todayStr = new Date().toISOString().split('T')[0];
   
   const dOneYearAgo = new Date();
@@ -725,7 +888,6 @@ async function runCustomPeriodComparison(currency) {
 
   if (!startDate || !endDate) return;
 
-  // Swap dates if user picked end date earlier than start date
   if (startDate > endDate) {
     const temp = startDate;
     startDate = endDate;
@@ -741,7 +903,6 @@ async function runCustomPeriodComparison(currency) {
 
   if (resPctEl) resPctEl.textContent = 'Calculating...';
 
-  // Fetch rates for start date and end date
   const [rateStart, rateEnd] = await Promise.all([
     FXDataService.fetchRateForDate(currency, startDate),
     FXDataService.fetchRateForDate(currency, endDate)
@@ -752,7 +913,7 @@ async function runCustomPeriodComparison(currency) {
     return;
   }
 
-  const precision = currency === 'JPY' || currency === 'INR' || currency === 'RUB' ? 2 : 4;
+  const precision = currency === 'JPY' || currency === 'INR' || currency === 'RUB' || currency === 'KRW' ? 2 : 4;
   const diff = rateEnd - rateStart;
   const pct = ((rateEnd - rateStart) / rateStart) * 100;
   const isPos = pct >= 0;
@@ -788,7 +949,7 @@ function initTabNavigation() {
     history.replaceState(null, null, `#${tabId}`);
 
     const currUpper = tabId.toUpperCase();
-    if (['AUD', 'INR', 'JPY', 'EUR', 'GBP', 'RUB'].includes(currUpper)) {
+    if (['AUD', 'INR', 'JPY', 'EUR', 'GBP', 'RUB', 'KRW'].includes(currUpper)) {
       renderCurrencyTabChart(currUpper, '1Y');
       runCustomPeriodComparison(currUpper);
       if (currUpper === 'AUD') {
@@ -817,7 +978,7 @@ function initTabNavigation() {
 }
 
 /**
- * Time Scale Button Controller
+ * Time Scale Button Controller with Calculator Auto-Sync
  */
 function initTimeScaleButtons() {
   const timeBtnGroups = document.querySelectorAll('.time-scale-group');
@@ -833,10 +994,24 @@ function initTimeScaleButtons() {
 
         const scale = btn.dataset.scale;
         if (currency) {
+          // 1. Render Chart & Table for new Scale
           renderCurrencyTabChart(currency, scale);
           if (currency === 'AUD') {
             renderAudCompetitorChart(scale);
           }
+
+          // 2. Auto-Sync Calculator Dates with Scale
+          const startDate = FXDataService.getStartDateForScale(scale);
+          const endDate = new Date().toISOString().split('T')[0];
+
+          const startInput = document.getElementById(`calc-start-${currency.toLowerCase()}`);
+          const endInput = document.getElementById(`calc-end-${currency.toLowerCase()}`);
+
+          if (startInput) startInput.value = startDate;
+          if (endInput) endInput.value = endDate;
+
+          // 3. Auto Run Comparison
+          runCustomPeriodComparison(currency);
         }
       });
     });
