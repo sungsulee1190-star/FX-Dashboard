@@ -1,0 +1,26 @@
+task_id: fx-dashboard-v2
+title: "FX Dashboard Overhaul & Advanced Export Analytics"
+created_at: "2026-08-11"
+status: "GPT_REVIEW_REQUIRED"
+author: "Antigravity & Peter"
+repository: "sungsulee1190-star/FX-Dashboard"
+branch: "main"
+commit: "2fbfe5d"
+modified_files:
+  - "index.html"
+  - "style.css"
+  - "app.js"
+  - "tools/verify-dashboard.js"
+features_implemented:
+  - "Scaffolded 7 currency panels (Overview, AUD, INR, JPY, EUR, GBP, RUB, KRW)"
+  - "Interactive Chart.js line charts with time scale controls (6M, 1Y, 2Y, 3Y, 5Y, MAX)"
+  - "Custom Period Change Calculator with date pickers and table cell click selection"
+  - "Time-scale button auto-sync with calculator dates"
+  - "German competitor EUR/AUD monthly average table & guide explanation card"
+  - "Overview tab HTML5 drag-and-drop card reordering with localStorage"
+  - "Live RUB multi-source fallback (Open ER-API + Fawaz API)"
+  - "Automated QA verification script (tools/verify-dashboard.js)"
+verification_status:
+  qa_script: "PASSED (0 Errors, 0 Warnings)"
+  http_preview: "PASSED (http://localhost:8080)"
+  git_status: "PUSHED to origin/main"
