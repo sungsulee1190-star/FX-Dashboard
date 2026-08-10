@@ -1,6 +1,6 @@
 /**
  * FX Dashboard - Main Application Engine & Data Layer
- * Step 5: Overview Tab Live Metrics, Dynamic Period Badges (1M/3M/1Y), Refresh Button & Final Polish
+ * Custom Period Comparison Feature (날짜/월 임의 기간 변동률 비교 기능)
  */
 
 // Global App Configuration
@@ -16,22 +16,17 @@ const CONFIG = {
 };
 
 /**
- * Chart Registry to prevent canvas reuse bugs
+ * Chart Registry
  */
 const ChartManager = {
   instances: {},
-
-  get(canvasId) {
-    return this.instances[canvasId];
-  },
-
+  get(canvasId) { return this.instances[canvasId]; },
   destroy(canvasId) {
     if (this.instances[canvasId]) {
       this.instances[canvasId].destroy();
       delete this.instances[canvasId];
     }
   },
-
   register(canvasId, chartInstance) {
     this.destroy(canvasId);
     this.instances[canvasId] = chartInstance;
@@ -39,7 +34,7 @@ const ChartManager = {
 };
 
 /**
- * FX Data Service - Fetching, Caching, and Analytics
+ * FX Data Service
  */
 const FXDataService = {
 
@@ -71,12 +66,7 @@ const FXDataService = {
         rates._rubSource = 'Static Fallback';
       }
 
-      const result = {
-        date: data.date,
-        rates: rates,
-        timestamp: Date.now()
-      };
-
+      const result = { date: data.date, rates, timestamp: Date.now() };
       this.setCache(cacheKey, result);
       return result;
 
@@ -125,6 +115,32 @@ const FXDataService = {
       console.error(`Error fetching history for ${currency}:`, err);
       return { currency, startDate, endDate, dailyRates: {} };
     }
+  },
+
+  async fetchRateForDate(currency, targetDate) {
+    if (currency === 'RUB' && targetDate > '2022-03-01') {
+      const latest = await this.fetchLatestRates();
+      return latest.rates ? latest.rates.RUB : 81.77;
+    }
+
+    try {
+      const res = await fetch(`${CONFIG.FRANKFURTER_BASE}/${targetDate}?from=USD&to=${currency}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.rates && data.rates[currency]) return data.rates[currency];
+      }
+    } catch (e) {}
+
+    // Fallback: search nearby dates in a small range
+    const d = new Date(targetDate);
+    d.setDate(d.getDate() - 7);
+    const startStr = d.toISOString().split('T')[0];
+    const hist = await this.fetchHistoricalSeries(currency, startStr, targetDate);
+    const dates = Object.keys(hist.dailyRates || {}).sort();
+    if (dates.length > 0) {
+      return hist.dailyRates[dates[dates.length - 1]];
+    }
+    return null;
   },
 
   async fetchEurAudComparison(startDate, endDate) {
@@ -257,9 +273,9 @@ const FXDataService = {
 document.addEventListener('DOMContentLoaded', () => {
   initTabNavigation();
   initTimeScaleButtons();
+  initCustomPeriodCalculators();
   loadOverviewData();
 
-  // Refresh Button Handler
   const refreshBtn = document.getElementById('btn-refresh-data');
   if (refreshBtn) {
     refreshBtn.addEventListener('click', async () => {
@@ -273,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Load Overview Cards + Dynamic Change Badges & Sparklines
+ * Load Overview Cards & Metrics
  */
 async function loadOverviewData(forceRefresh = false) {
   const data = await FXDataService.fetchLatestRates(forceRefresh);
@@ -295,14 +311,12 @@ async function loadOverviewData(forceRefresh = false) {
     }
   }
 
-  // Update Last Updated Timestamp
   const lastUpdatedEl = document.getElementById('last-updated-time');
   if (lastUpdatedEl) {
     const d = new Date(data.timestamp || Date.now());
     lastUpdatedEl.textContent = `Last updated: ${d.toLocaleTimeString()} (${data.date || 'Live'})`;
   }
 
-  // Render Mini Sparkline Charts & Dynamic Change Badges
   renderOverviewSparklinesAndBadges();
 }
 
@@ -314,7 +328,7 @@ function updateOverviewCard(currency, rate) {
 }
 
 /**
- * Render Mini Sparklines & Dynamic Period Change % Badges (1M, 3M, 1Y)
+ * Render Mini Sparklines & Dynamic Period Change Badges
  */
 async function renderOverviewSparklinesAndBadges() {
   const startDate = FXDataService.getStartDateForScale('1Y');
@@ -333,12 +347,10 @@ async function renderOverviewSparklinesAndBadges() {
 
     if (values.length === 0) return;
 
-    // Calculate 1M, 3M, 1Y Change %
     const change1M = FXDataService.calculateChangePct(daily, 30);
     const change3M = FXDataService.calculateChangePct(daily, 90);
     const change1Y = FXDataService.calculateChangePct(daily, 365);
 
-    // Update Card Header Badge (1M)
     const headerBadge = document.getElementById(`badge-1m-${currLower}`);
     if (headerBadge) {
       const isPos = change1M >= 0;
@@ -346,7 +358,6 @@ async function renderOverviewSparklinesAndBadges() {
       headerBadge.className = `metric-pill ${isPos ? 'positive' : 'negative'}`;
     }
 
-    // Update Card Footer Metrics
     const metricsContainer = document.getElementById(`metrics-${currLower}`);
     if (metricsContainer) {
       metricsContainer.innerHTML = `
@@ -356,7 +367,6 @@ async function renderOverviewSparklinesAndBadges() {
       `;
     }
 
-    // Sparkline Canvas
     if (container) {
       container.innerHTML = `<canvas id="canvas-spark-${currLower}"></canvas>`;
       const canvas = document.getElementById(`canvas-spark-${currLower}`);
@@ -392,7 +402,7 @@ async function renderOverviewSparklinesAndBadges() {
 }
 
 /**
- * Render Main Currency Chart (Chart.js Line Chart)
+ * Render Main Currency Chart
  */
 async function renderCurrencyTabChart(currency, scale = '1Y') {
   const canvasId = `chart-canvas-${currency.toLowerCase()}`;
@@ -551,7 +561,7 @@ async function renderAudCompetitorChart(scale = '1Y') {
 }
 
 /**
- * Render Monthly Average Table (Year x Month Grid) with YoY Color Coding
+ * Render Monthly Average Table & Cell Click Handlers
  */
 async function renderMonthlyAverageTable(currency, scale = '3Y') {
   const tbody = document.getElementById(`table-${currency.toLowerCase()}-body`);
@@ -591,17 +601,18 @@ async function renderMonthlyAverageTable(currency, scale = '3Y') {
 
       if (currentAvg !== undefined && currentAvg !== null) {
         const prevAvg = ymMap[`${prevYear}-${m}`];
-        let cellClass = '';
+        let cellClass = 'cell-clickable';
 
         if (prevAvg !== undefined && prevAvg !== null) {
           if (currentAvg > prevAvg) {
-            cellClass = 'cell-favorable';
+            cellClass += ' cell-favorable';
           } else if (currentAvg < prevAvg) {
-            cellClass = 'cell-unfavorable';
+            cellClass += ' cell-unfavorable';
           }
         }
 
-        rowCells += `<td class="${cellClass}" title="${year}-${m} Avg: ${currentAvg.toFixed(precision + 2)}">${currentAvg.toFixed(precision)}</td>`;
+        const dateVal = `${year}-${m}-15`;
+        rowCells += `<td class="${cellClass}" data-date="${dateVal}" data-currency="${currency}" data-avg="${currentAvg}" title="Click to compare ${year}-${m} Rate">${currentAvg.toFixed(precision)}</td>`;
       } else {
         rowCells += `<td style="color:#94a3b8;">--</td>`;
       }
@@ -614,6 +625,146 @@ async function renderMonthlyAverageTable(currency, scale = '3Y') {
   });
 
   tbody.innerHTML = htmlRows;
+
+  // Add Cell Click Event Listener
+  attachTableCellClickHandlers(currency);
+}
+
+/**
+ * Table Cell Selection State Management
+ */
+const TableSelection = {
+  startCell: null,
+  endCell: null,
+  currency: null
+};
+
+function attachTableCellClickHandlers(currency) {
+  const tbody = document.getElementById(`table-${currency.toLowerCase()}-body`);
+  if (!tbody) return;
+
+  const cells = tbody.querySelectorAll('.cell-clickable');
+  cells.forEach(cell => {
+    cell.addEventListener('click', () => {
+      const dateStr = cell.dataset.date;
+      const rateVal = parseFloat(cell.dataset.avg);
+
+      if (!TableSelection.startCell || TableSelection.currency !== currency || (TableSelection.startCell && TableSelection.endCell)) {
+        // First selection (Start Date)
+        clearCellSelection(tbody);
+        TableSelection.startCell = { date: dateStr, rate: rateVal, el: cell };
+        TableSelection.endCell = null;
+        TableSelection.currency = currency;
+
+        cell.classList.add('cell-selected-start');
+
+        // Set Start Input value
+        const startInput = document.getElementById(`calc-start-${currency.toLowerCase()}`);
+        if (startInput) startInput.value = dateStr;
+
+      } else {
+        // Second selection (End Date)
+        if (cell === TableSelection.startCell.el) return; // Ignore clicking same cell twice
+
+        TableSelection.endCell = { date: dateStr, rate: rateVal, el: cell };
+        cell.classList.add('cell-selected-end');
+
+        // Set End Input value
+        const endInput = document.getElementById(`calc-end-${currency.toLowerCase()}`);
+        if (endInput) endInput.value = dateStr;
+
+        // Auto trigger comparison
+        runCustomPeriodComparison(currency);
+      }
+    });
+  });
+}
+
+function clearCellSelection(tbody) {
+  if (!tbody) return;
+  const cells = tbody.querySelectorAll('.cell-clickable');
+  cells.forEach(c => c.classList.remove('cell-selected-start', 'cell-selected-end'));
+}
+
+/**
+ * Custom Period Calculator Logic
+ */
+function initCustomPeriodCalculators() {
+  const currencies = ['aud', 'inr', 'jpy', 'eur', 'gbp', 'rub'];
+  const todayStr = new Date().toISOString().split('T')[0];
+  
+  const dOneYearAgo = new Date();
+  dOneYearAgo.setFullYear(dOneYearAgo.getFullYear() - 1);
+  const oneYearAgoStr = dOneYearAgo.toISOString().split('T')[0];
+
+  currencies.forEach(c => {
+    const startInput = document.getElementById(`calc-start-${c}`);
+    const endInput = document.getElementById(`calc-end-${c}`);
+    const calcBtn = document.querySelector(`.btn-run-calc[data-currency="${c.toUpperCase()}"]`);
+
+    if (startInput && !startInput.value) startInput.value = oneYearAgoStr;
+    if (endInput && !endInput.value) endInput.value = todayStr;
+
+    if (calcBtn) {
+      calcBtn.addEventListener('click', () => {
+        runCustomPeriodComparison(c.toUpperCase());
+      });
+    }
+  });
+}
+
+async function runCustomPeriodComparison(currency) {
+  const cLower = currency.toLowerCase();
+  const startInput = document.getElementById(`calc-start-${cLower}`);
+  const endInput = document.getElementById(`calc-end-${cLower}`);
+  
+  if (!startInput || !endInput) return;
+
+  let startDate = startInput.value;
+  let endDate = endInput.value;
+
+  if (!startDate || !endDate) return;
+
+  // Swap dates if user picked end date earlier than start date
+  if (startDate > endDate) {
+    const temp = startDate;
+    startDate = endDate;
+    endDate = temp;
+    startInput.value = startDate;
+    endInput.value = endDate;
+  }
+
+  const resStartEl = document.getElementById(`res-start-${cLower}`);
+  const resEndEl = document.getElementById(`res-end-${cLower}`);
+  const resDiffEl = document.getElementById(`res-diff-${cLower}`);
+  const resPctEl = document.getElementById(`res-pct-${cLower}`);
+
+  if (resPctEl) resPctEl.textContent = 'Calculating...';
+
+  // Fetch rates for start date and end date
+  const [rateStart, rateEnd] = await Promise.all([
+    FXDataService.fetchRateForDate(currency, startDate),
+    FXDataService.fetchRateForDate(currency, endDate)
+  ]);
+
+  if (rateStart === null || rateEnd === null) {
+    if (resPctEl) resPctEl.textContent = 'Data N/A';
+    return;
+  }
+
+  const precision = currency === 'JPY' || currency === 'INR' || currency === 'RUB' ? 2 : 4;
+  const diff = rateEnd - rateStart;
+  const pct = ((rateEnd - rateStart) / rateStart) * 100;
+  const isPos = pct >= 0;
+
+  if (resStartEl) resStartEl.textContent = `${rateStart.toFixed(precision)} (${startDate})`;
+  if (resEndEl) resEndEl.textContent = `${rateEnd.toFixed(precision)} (${endDate})`;
+  if (resDiffEl) resDiffEl.textContent = `${diff >= 0 ? '+' : ''}${diff.toFixed(precision)}`;
+
+  if (resPctEl) {
+    resPctEl.textContent = `${isPos ? '+' : ''}${pct.toFixed(2)}%`;
+    resPctEl.className = `result-change-val ${isPos ? 'positive' : 'negative'}`;
+  }
 }
 
 /**
@@ -639,6 +790,7 @@ function initTabNavigation() {
     const currUpper = tabId.toUpperCase();
     if (['AUD', 'INR', 'JPY', 'EUR', 'GBP', 'RUB'].includes(currUpper)) {
       renderCurrencyTabChart(currUpper, '1Y');
+      runCustomPeriodComparison(currUpper);
       if (currUpper === 'AUD') {
         renderAudCompetitorChart('1Y');
       }

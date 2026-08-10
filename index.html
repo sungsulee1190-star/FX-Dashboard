@@ -196,12 +196,47 @@
         </div>
       </div>
 
+      <!-- Custom Period Calculator Widget -->
+      <div class="custom-period-card">
+        <div class="custom-period-header">
+          <h4>📅 Custom Period Change Calculator (기간 임의 비교 계산기)</h4>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Select two dates or click 2 cells in the table below</span>
+        </div>
+        <div class="period-inputs-form" data-currency="AUD">
+          <div class="input-group">
+            <label>Start Date (시작일/기준시점):</label>
+            <input type="date" class="date-input date-start" id="calc-start-aud" />
+          </div>
+          <div class="input-group">
+            <label>End Date (종료일/비교시점):</label>
+            <input type="date" class="date-input date-end" id="calc-end-aud" />
+          </div>
+          <button class="btn-calc btn-run-calc" data-currency="AUD">📊 Compare Rates</button>
+        </div>
+        <div class="period-result-display" id="calc-result-aud">
+          <div class="result-metric-box">
+            <span class="result-metric-label">Start Rate (시작 시점 환율)</span>
+            <span class="result-metric-val" id="res-start-aud">--</span>
+          </div>
+          <div class="result-metric-box">
+            <span class="result-metric-label">End Rate (종료 시점 환율)</span>
+            <span class="result-metric-val" id="res-end-aud">--</span>
+          </div>
+          <div class="result-metric-box">
+            <span class="result-metric-label">Difference (절대 차이)</span>
+            <span class="result-metric-val" id="res-diff-aud">--</span>
+          </div>
+          <div class="result-metric-box">
+            <span class="result-metric-label">Period Change (%)</span>
+            <span class="result-change-val" id="res-pct-aud">--%</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Main Chart Card -->
       <div class="card chart-card">
         <div class="chart-wrapper">
-          <div class="chart-placeholder" id="chart-aud-placeholder">
-            Loading AUD Chart...
-          </div>
+          <div class="chart-placeholder" id="chart-aud-placeholder">Loading AUD Chart...</div>
         </div>
       </div>
 
@@ -214,15 +249,16 @@
       </div>
       <div class="card chart-card">
         <div class="chart-wrapper">
-          <div class="chart-placeholder" id="chart-aud-comp-placeholder">
-            Loading Competitor Overlay Chart...
-          </div>
+          <div class="chart-placeholder" id="chart-aud-comp-placeholder">Loading Competitor Overlay Chart...</div>
         </div>
       </div>
 
       <!-- Monthly Average Table Section -->
       <div class="panel-header" style="margin-top: 2rem;">
-        <h3 class="panel-title" style="font-size: 1.2rem;">Monthly Average Rates (Year × Month Grid)</h3>
+        <div>
+          <h3 class="panel-title" style="font-size: 1.2rem;">Monthly Average Rates (Year × Month Grid)</h3>
+          <p class="panel-subtitle">💡 Tip: Click any 2 cells in the table to compare period exchange rate change!</p>
+        </div>
       </div>
       <div class="card table-card">
         <div class="table-responsive">
@@ -259,6 +295,44 @@
           <button class="time-btn" data-scale="MAX">Max</button>
         </div>
       </div>
+
+      <!-- Custom Period Calculator Widget -->
+      <div class="custom-period-card">
+        <div class="custom-period-header">
+          <h4>📅 Custom Period Change Calculator (기간 임의 비교 계산기)</h4>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Select two dates or click 2 cells in the table below</span>
+        </div>
+        <div class="period-inputs-form" data-currency="INR">
+          <div class="input-group">
+            <label>Start Date (시작일):</label>
+            <input type="date" class="date-input date-start" id="calc-start-inr" />
+          </div>
+          <div class="input-group">
+            <label>End Date (종료일):</label>
+            <input type="date" class="date-input date-end" id="calc-end-inr" />
+          </div>
+          <button class="btn-calc btn-run-calc" data-currency="INR">📊 Compare Rates</button>
+        </div>
+        <div class="period-result-display" id="calc-result-inr">
+          <div class="result-metric-box">
+            <span class="result-metric-label">Start Rate</span>
+            <span class="result-metric-val" id="res-start-inr">--</span>
+          </div>
+          <div class="result-metric-box">
+            <span class="result-metric-label">End Rate</span>
+            <span class="result-metric-val" id="res-end-inr">--</span>
+          </div>
+          <div class="result-metric-box">
+            <span class="result-metric-label">Difference</span>
+            <span class="result-metric-val" id="res-diff-inr">--</span>
+          </div>
+          <div class="result-metric-box">
+            <span class="result-metric-label">Period Change (%)</span>
+            <span class="result-change-val" id="res-pct-inr">--%</span>
+          </div>
+        </div>
+      </div>
+
       <div class="card chart-card">
         <div class="chart-wrapper">
           <div class="chart-placeholder">Loading INR Chart...</div>
@@ -300,6 +374,30 @@
           <button class="time-btn" data-scale="MAX">Max</button>
         </div>
       </div>
+
+      <div class="custom-period-card">
+        <div class="custom-period-header">
+          <h4>📅 Custom Period Change Calculator (기간 임의 비교 계산기)</h4>
+        </div>
+        <div class="period-inputs-form" data-currency="JPY">
+          <div class="input-group">
+            <label>Start Date (시작일):</label>
+            <input type="date" class="date-input date-start" id="calc-start-jpy" />
+          </div>
+          <div class="input-group">
+            <label>End Date (종료일):</label>
+            <input type="date" class="date-input date-end" id="calc-end-jpy" />
+          </div>
+          <button class="btn-calc btn-run-calc" data-currency="JPY">📊 Compare Rates</button>
+        </div>
+        <div class="period-result-display" id="calc-result-jpy">
+          <div class="result-metric-box"><span class="result-metric-label">Start Rate</span><span class="result-metric-val" id="res-start-jpy">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">End Rate</span><span class="result-metric-val" id="res-end-jpy">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">Difference</span><span class="result-metric-val" id="res-diff-jpy">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">Period Change (%)</span><span class="result-change-val" id="res-pct-jpy">--%</span></div>
+        </div>
+      </div>
+
       <div class="card chart-card">
         <div class="chart-wrapper">
           <div class="chart-placeholder">Loading JPY Chart...</div>
@@ -341,6 +439,30 @@
           <button class="time-btn" data-scale="MAX">Max</button>
         </div>
       </div>
+
+      <div class="custom-period-card">
+        <div class="custom-period-header">
+          <h4>📅 Custom Period Change Calculator (기간 임의 비교 계산기)</h4>
+        </div>
+        <div class="period-inputs-form" data-currency="EUR">
+          <div class="input-group">
+            <label>Start Date (시작일):</label>
+            <input type="date" class="date-input date-start" id="calc-start-eur" />
+          </div>
+          <div class="input-group">
+            <label>End Date (종료일):</label>
+            <input type="date" class="date-input date-end" id="calc-end-eur" />
+          </div>
+          <button class="btn-calc btn-run-calc" data-currency="EUR">📊 Compare Rates</button>
+        </div>
+        <div class="period-result-display" id="calc-result-eur">
+          <div class="result-metric-box"><span class="result-metric-label">Start Rate</span><span class="result-metric-val" id="res-start-eur">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">End Rate</span><span class="result-metric-val" id="res-end-eur">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">Difference</span><span class="result-metric-val" id="res-diff-eur">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">Period Change (%)</span><span class="result-change-val" id="res-pct-eur">--%</span></div>
+        </div>
+      </div>
+
       <div class="card chart-card">
         <div class="chart-wrapper">
           <div class="chart-placeholder">Loading EUR Chart...</div>
@@ -382,6 +504,30 @@
           <button class="time-btn" data-scale="MAX">Max</button>
         </div>
       </div>
+
+      <div class="custom-period-card">
+        <div class="custom-period-header">
+          <h4>📅 Custom Period Change Calculator (기간 임의 비교 계산기)</h4>
+        </div>
+        <div class="period-inputs-form" data-currency="GBP">
+          <div class="input-group">
+            <label>Start Date (시작일):</label>
+            <input type="date" class="date-input date-start" id="calc-start-gbp" />
+          </div>
+          <div class="input-group">
+            <label>End Date (종료일):</label>
+            <input type="date" class="date-input date-end" id="calc-end-gbp" />
+          </div>
+          <button class="btn-calc btn-run-calc" data-currency="GBP">📊 Compare Rates</button>
+        </div>
+        <div class="period-result-display" id="calc-result-gbp">
+          <div class="result-metric-box"><span class="result-metric-label">Start Rate</span><span class="result-metric-val" id="res-start-gbp">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">End Rate</span><span class="result-metric-val" id="res-end-gbp">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">Difference</span><span class="result-metric-val" id="res-diff-gbp">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">Period Change (%)</span><span class="result-change-val" id="res-pct-gbp">--%</span></div>
+        </div>
+      </div>
+
       <div class="card chart-card">
         <div class="chart-wrapper">
           <div class="chart-placeholder">Loading GBP Chart...</div>
@@ -416,6 +562,29 @@
         </div>
         <div class="time-scale-group" data-currency="RUB">
           <button class="time-btn active" data-scale="MAX">Historical Max (1999-2022)</button>
+        </div>
+      </div>
+
+      <div class="custom-period-card">
+        <div class="custom-period-header">
+          <h4>📅 Custom Period Change Calculator (기간 임의 비교 계산기)</h4>
+        </div>
+        <div class="period-inputs-form" data-currency="RUB">
+          <div class="input-group">
+            <label>Start Date (시작일):</label>
+            <input type="date" class="date-input date-start" id="calc-start-rub" />
+          </div>
+          <div class="input-group">
+            <label>End Date (종료일):</label>
+            <input type="date" class="date-input date-end" id="calc-end-rub" />
+          </div>
+          <button class="btn-calc btn-run-calc" data-currency="RUB">📊 Compare Rates</button>
+        </div>
+        <div class="period-result-display" id="calc-result-rub">
+          <div class="result-metric-box"><span class="result-metric-label">Start Rate</span><span class="result-metric-val" id="res-start-rub">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">End Rate</span><span class="result-metric-val" id="res-end-rub">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">Difference</span><span class="result-metric-val" id="res-diff-rub">--</span></div>
+          <div class="result-metric-box"><span class="result-metric-label">Period Change (%)</span><span class="result-change-val" id="res-pct-rub">--%</span></div>
         </div>
       </div>
 

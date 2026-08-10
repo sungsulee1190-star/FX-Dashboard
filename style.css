@@ -156,6 +156,128 @@ body {
   color: var(--text-muted);
 }
 
+/* Custom Period Calculator Bar */
+.custom-period-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-left: 5px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.custom-period-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.custom-period-header h4 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.period-inputs-form {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.input-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.date-input {
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  outline: none;
+  font-family: inherit;
+  color: var(--text-main);
+  background: #f8fafc;
+  transition: border-color 0.15s ease;
+}
+
+.date-input:focus {
+  border-color: var(--accent);
+  background: #ffffff;
+}
+
+.btn-calc {
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  padding: 9px 18px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  align-self: flex-end;
+  transition: background 0.15s ease;
+}
+
+.btn-calc:hover {
+  background: var(--accent-hover);
+}
+
+.period-result-display {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  background: #f1f5f9;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.result-metric-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.result-metric-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.result-metric-val {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.result-change-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.result-change-val.positive {
+  color: var(--green-text);
+}
+
+.result-change-val.negative {
+  color: var(--red-text);
+}
+
 /* Warning Banner for RUB */
 .warning-banner {
   background: #fffbeeb0;
@@ -360,6 +482,28 @@ body {
 .monthly-table td.avg-col {
   background: #f8fafc;
   font-weight: 700;
+}
+
+.cell-clickable {
+  cursor: pointer;
+  transition: background 0.15s ease, outline 0.15s ease;
+}
+
+.cell-clickable:hover {
+  outline: 2px solid var(--accent);
+  z-index: 10;
+}
+
+.cell-selected-start {
+  outline: 3px solid #2563eb !important;
+  background: #dbeafe !important;
+  font-weight: 800;
+}
+
+.cell-selected-end {
+  outline: 3px solid #16a34a !important;
+  background: #dcfce7 !important;
+  font-weight: 800;
 }
 
 .cell-favorable {
